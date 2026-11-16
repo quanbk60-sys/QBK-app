@@ -89,7 +89,7 @@ if orders.size() > 0
             orders.remove(i)
         else
             o.bx.set_right(bar_index + 10)
-            o.tpl.set_right(bar_index + 10)
+            o.tpl.set_x2(bar_index + 10)
 
 // 2) Phá cấu trúc → tạo lệnh chờ mới
 ph = ta.pivothigh(high, swLen, swLen)
