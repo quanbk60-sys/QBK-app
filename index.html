@@ -1,0 +1,563 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f1115">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="QBK">
+<meta name="robots" content="noindex, nofollow">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-192.png">
+<title>Quỹ QBK</title>
+<style>
+:root{--bg:#0f1115;--card:#171a21;--card2:#1e222b;--line:#262b35;--ink:#e7e9ee;--ink2:#c3c9d3;--muted:#a3abb8;
+--blue:#2f81f7;--blue2:#7ab4ff;--green:#4fd1b5;--red:#ff8a80;--amber:#f5c27a;--amberbg:#2a1e10}
+*{box-sizing:border-box}html,body{margin:0;background:var(--bg);color:var(--ink);
+font-family:"Be Vietnam Pro",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased}
+body{min-height:100vh;padding-bottom:calc(76px + env(safe-area-inset-bottom))}
+button{font-family:inherit}
+.wrap{max-width:640px;margin:0 auto;padding:0 16px}
+header{position:sticky;top:0;z-index:5;background:var(--bg);padding:calc(14px + env(safe-area-inset-top)) 0 10px}
+header .wrap{display:flex;align-items:center;justify-content:space-between;gap:12px}
+h1{font-size:20px;margin:0;letter-spacing:-.2px}.sub{font-size:12px;color:var(--muted)}
+.icon-btn{width:44px;height:44px;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--ink);
+display:flex;align-items:center;justify-content:center;cursor:pointer}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;margin:12px 0}
+.label{font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin:0 0 10px}
+.row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.tile{background:var(--card2);border-radius:10px;padding:10px;min-width:0}
+.tile .k{font-size:11px;color:var(--muted)}.tile .v{font-size:15px;font-weight:600;margin-top:2px;overflow-wrap:anywhere}
+.pill{display:inline-block;padding:3px 8px;border-radius:6px;font-size:12px;font-weight:700}
+.long{background:#0f3a33;color:var(--green)}.short{background:#3a1515;color:var(--red)}
+.chip{display:inline-block;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:600;border:1px solid var(--line);color:var(--ink2)}
+.ok{color:var(--green)}.bad{color:var(--red)}.warn{color:var(--amber)}
+.banner{background:var(--amberbg);border:1px solid #4a3216;color:var(--amber);border-radius:12px;padding:10px 12px;font-size:13px;margin:12px 0}
+.agent{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px;min-width:0}
+.av{width:30px;height:30px;border-radius:8px;background:#232833;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.agent .n{font-size:12px;font-weight:600;margin-top:6px}.agent .s{font-size:11px;color:var(--muted);margin-top:2px}
+.bar{height:8px;border-radius:4px;background:var(--line);overflow:hidden;margin:8px 0}.bar>div{height:8px;background:var(--blue)}
+pre{white-space:pre-wrap;word-break:break-word;font-family:inherit;font-size:13px;line-height:1.5;color:var(--ink2);margin:0}
+img.chart{width:100%;border-radius:10px;margin:10px 0;border:1px solid var(--line)}
+details summary{list-style:none;cursor:pointer}details summary::-webkit-details-marker{display:none}
+.filters{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
+.filters button{height:36px;padding:0 14px;border-radius:999px;border:1px solid var(--line);background:var(--card);color:var(--ink2);font-size:13px;cursor:pointer}
+.filters button.on{background:var(--blue);border-color:var(--blue);color:#fff}
+.cmd{display:flex;gap:8px;align-items:center;margin-top:8px}
+.cmd code{flex:1;background:var(--card2);border-radius:8px;padding:10px;font-size:13px;color:var(--blue2)}
+.btn{height:44px;padding:0 14px;border-radius:10px;border:none;background:var(--blue);color:#fff;font-size:14px;font-weight:600;cursor:pointer}
+.btn.ghost{background:transparent;border:1px solid #343a46;color:var(--ink)}
+nav{position:fixed;left:0;right:0;bottom:0;background:var(--bg);border-top:1px solid #1e222b;padding:6px 8px calc(10px + env(safe-area-inset-bottom));z-index:6}
+nav .in{max-width:640px;margin:0 auto;display:grid;grid-template-columns:repeat(7,minmax(0,1fr))}
+nav button{height:52px;border:none;background:transparent;color:#8b94a3;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:10px;font-weight:600;cursor:pointer;padding:0 2px;min-width:0}
+nav button.on{color:var(--blue2)}
+.lock{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
+.lock .box{width:100%;max-width:360px;text-align:center}
+.lock input[type=password]{width:100%;height:48px;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--ink);padding:0 14px;font-size:16px;margin:14px 0 10px}
+.lock label{font-size:13px;color:var(--muted);display:flex;gap:8px;align-items:center;justify-content:center;margin-bottom:14px}
+.logo{width:64px;height:64px;border-radius:18px;background:#1b3354;color:var(--blue2);font-size:26px;font-weight:800;display:flex;align-items:center;justify-content:center;margin:0 auto 12px}
+textarea,.inp{width:100%;border-radius:12px;border:1px solid var(--line);background:var(--card2);color:var(--ink);padding:12px;font-size:15px;font-family:inherit}
+textarea{min-height:76px;resize:vertical}.inp{height:44px}
+.btn:disabled{opacity:.5;cursor:not-allowed}.btn.red{background:transparent;border:1px solid #5a2a2a;color:var(--red)}
+.reply{border-top:1px solid var(--line);padding:10px 0}.reply b{font-size:13px}
+.empty{color:var(--muted);font-size:13px;text-align:center;padding:16px 0}
+.hidden{display:none!important}
+.stack{display:flex;height:14px;border-radius:7px;overflow:hidden;background:var(--line);margin:8px 0}
+.stack>div{height:14px}
+.legend{display:flex;flex-wrap:wrap;gap:6px 12px;font-size:12px;color:var(--ink2)}
+.dot{display:inline-block;width:9px;height:9px;border-radius:3px;margin-right:5px;vertical-align:0}
+.khoi{font-size:12px;font-weight:700;color:var(--blue2);margin:14px 0 6px}
+.tbl{width:100%;border-collapse:collapse;font-size:13px;font-variant-numeric:tabular-nums}
+.tbl td,.tbl th{padding:8px 4px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
+.tbl td:first-child,.tbl th:first-child{text-align:left}
+.tbl th{font-size:11px;color:var(--muted);font-weight:600}
+.scrollx{overflow-x:auto}
+.dept{border:1px solid var(--line);border-radius:12px;padding:12px;margin-top:10px}
+.dept .row b{font-size:15px}.dept .sub{margin-top:4px}
+.v3d{position:fixed;inset:0;z-index:50;background:var(--bg);display:flex;flex-direction:column}
+.v3d iframe{flex:1;border:0;width:100%}
+.v3d .x3d{position:absolute;right:calc(12px + env(safe-area-inset-right));bottom:calc(14px + env(safe-area-inset-bottom));z-index:2;height:44px;padding:0 16px;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--ink);font-size:14px;font-weight:600;cursor:pointer}
+.zone{display:flex;justify-content:space-between;gap:8px;padding:7px 0;border-bottom:1px solid var(--line);font-size:13px}
+.score{font-weight:700;min-width:34px;text-align:right}
+svg.spark{width:100%;height:70px;display:block}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+</style>
+</head>
+<body>
+<div id="lock" class="lock">
+  <form class="box" id="lockForm">
+    <div class="logo" aria-hidden="true">Q</div>
+    <h1>Quỹ QBK</h1>
+    <div class="sub">Dữ liệu đã mã hóa · nhập mật khẩu app</div>
+    <label for="pw" class="sr-only">Mật khẩu</label>
+    <input id="pw" type="password" autocomplete="current-password" placeholder="Mật khẩu app" required>
+    <label><input type="checkbox" id="remember"> Ghi nhớ trên máy này</label>
+    <button class="btn" style="width:100%" type="submit">Mở</button>
+    <p id="lockMsg" class="sub bad" role="alert"></p>
+  </form>
+</div>
+
+<div id="app" class="hidden">
+  <header><div class="wrap">
+    <div><h1>Quỹ QBK</h1><div class="sub" id="updated"></div></div>
+    <div style="display:flex;gap:8px">
+      <button class="icon-btn" id="refresh" aria-label="Tải lại dữ liệu">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/></svg>
+      </button>
+      <button class="icon-btn" id="settings" aria-label="Cài đặt gửi lệnh">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
+      </button>
+      <button class="icon-btn" id="logout" aria-label="Khóa app">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+      </button>
+    </div>
+  </div></header>
+  <main class="wrap" id="view"></main>
+  <nav aria-label="Điều hướng chính"><div class="in" id="tabs"></div></nav>
+</div>
+
+<script>
+"use strict";
+const TABS = [
+  ["tong", "Tổng quan", '<path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/>'],
+  ["quy", "Quỹ", '<path d="M3 10l9-6 9 6"/><path d="M5 10v8M9.5 10v8M14.5 10v8M19 10v8"/><path d="M3 20h18"/>'],
+  ["hop", "Họp", '<path d="M4 5h16v11H9l-5 4z"/>'],
+  ["lenh", "Lệnh", '<rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h4"/>'],
+  ["tk", "Thanh khoản", '<path d="M12 3c3 4.5 6 7.6 6 11a6 6 0 0 1-12 0c0-3.4 3-6.5 6-11z"/>'],
+  ["so", "Sổ sách", '<path d="M4 19h16"/><path d="M7 15V9M12 15V5M17 15v-4"/>'],
+  ["tv", "Thư viện", '<path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3z"/><path d="M5 17a3 3 0 0 1 3-3h11"/>'],
+];
+let DATA = null, PASS = null, TAB = "tong", FILTER = "mo", TOKEN = null, TKSORT = "hang", TKQ = "", DESK = null;
+const DESK_GRADES = {AI: ["A", "B"], E: ["E"], R: ["R"], C: ["C"], D: ["D"]};
+const $ = (s) => document.querySelector(s);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const num = (x, d = 2) => (x === null || x === undefined) ? "–" : Number(x).toLocaleString("vi-VN", {minimumFractionDigits: d, maximumFractionDigits: d});
+const pct = (x) => (x === null || x === undefined) ? "–" : Math.round(x * 100) + "%";
+const store = { get(k){ try { return localStorage.getItem(k); } catch(e){ return null; } },
+                set(k,v){ try { localStorage.setItem(k,v); } catch(e){} }, del(k){ try { localStorage.removeItem(k); } catch(e){} } };
+
+// ---------- giải mã (AES-256-GCM, khóa PBKDF2-SHA256, khớp qbk/crypto_box.py) ----------
+const b64 = (s) => Uint8Array.from(atob(s), (c) => c.charCodeAt(0));
+async function decrypt(box, pass) {
+  const base = await crypto.subtle.importKey("raw", new TextEncoder().encode(pass), "PBKDF2", false, ["deriveKey"]);
+  const key = await crypto.subtle.deriveKey({name: "PBKDF2", salt: b64(box.salt), iterations: box.iter, hash: "SHA-256"},
+                                            base, {name: "AES-GCM", length: 256}, false, ["decrypt"]);
+  const pt = await crypto.subtle.decrypt({name: "AES-GCM", iv: b64(box.iv)}, key, b64(box.ct));
+  return JSON.parse(new TextDecoder().decode(pt));
+}
+async function load(pass) {
+  const r = await fetch("data.enc.json?t=" + Date.now(), {cache: "no-store"});
+  if (!r.ok) throw new Error("Chưa có dữ liệu (lần chạy đầu chưa xong?)");
+  return decrypt(await r.json(), pass);
+}
+
+// ---------- màn hình ----------
+function pill(h) { return `<span class="pill ${h === "LONG" ? "long" : "short"}">${esc(h)}</span>`; }
+function statusClass(code) { return {THANG: "ok", THUA: "bad", HUY: "", DANG_CHAY: "warn", CHO_KHOP: ""}[code] || ""; }
+function copyBtn(cmd) { return `<div class="cmd"><code>${esc(cmd)}</code><button class="btn ghost" data-copy="${esc(cmd)}">Chép</button></div>`; }
+
+function viewTong(d) {
+  const m = d.thi_truong, w = d.von, ai = d.chi_phi_ai;
+  const pending = d.lenh.filter((o) => !["C","D","E","R"].includes(o.hang) && o.giam_doc === "Duyệt" && o.chu === "Chưa trả lời" && ["CHO_KHOP","DANG_CHAY"].includes(o.ma_trang_thai));
+  let h = "";
+  const today = new Date().getDay();
+  if (today === 0 || today === 6) h += `<div class="banner">Cuối tuần · thanh khoản mỏng, chỉ là lưu ý để cân nhắc</div>`;
+  if (m) {
+    h += `<section class="card"><div class="row"><div class="label" style="margin:0">Thị trường</div><span class="sub">${esc(m.luc)}</span></div>
+      <div class="row" style="margin:8px 0 12px"><div style="font-size:22px;font-weight:700">${esc(m.ma)}</div><div style="font-size:20px;font-weight:700">${num(m.gia)}</div></div>
+      <div class="grid2">${["4h","1h"].map((tf) => { const k = m.khung[tf]; return `<div class="tile"><div class="k">${tf.toUpperCase()}</div>
+        <div class="v" style="font-size:13px">Swing ${esc(k.swing)} · Internal ${esc(k.internal)}</div>
+        <div class="k" style="margin-top:4px">Vùng ${esc(k.vung)}${k.pd ? ` · ${esc(k.pd.dinh_loai)} ${num(k.pd.dinh,0)} / ${esc(k.pd.day_loai)} ${num(k.pd.day,0)}` : ""}</div></div>`; }).join("")}</div>
+      ${(m.vung_code || []).length ? `<div class="label" style="margin-top:12px">Vùng code đang thấy · chưa phải lệnh (gõ /hop để họp)</div>
+      ${m.vung_code.map((z) => `<div class="sub" style="margin-top:4px">${esc(z.hang)} ${pill(z.huong)} OB 1H ${num(z.bottom)} – ${num(z.top)}${z.entry ? ` · Entry ${num(z.entry)} SL ${num(z.sl)} TP ${num(z.tp)}` : ""}${z.lenh_cu.length ? ` · cùng vùng lệnh ${z.lenh_cu.map((o) => `#${o.id} ${esc(o.trang_thai)}`).join(", ")}` : ""}</div>`).join("")}` : ""}</section>`;
+  }
+  h += `<section class="card"><div class="label">Chờ bạn duyệt (${pending.length})</div>`;
+  h += pending.length ? pending.map((o) => `<div class="tile" style="margin-bottom:8px">
+      <div class="row"><div><b>#${o.id} · Lệnh ${esc(o.hang)}</b> ${pill(o.huong)}</div><span class="sub">${esc(o.luc)}</span></div>
+      <div class="grid3" style="margin-top:8px"><div><div class="k">Entry</div><b>${num(o.entry)}</b></div><div><div class="k">SL</div><b class="bad">${num(o.sl)}</b></div><div><div class="k">TP</div><b class="ok">${num(o.tp)}</b></div></div>
+      <div class="sub" style="margin-top:6px">RR 1:${num(o.rr)} · KL ${num(o.khoi_luong,0)} USDT · ${esc(o.trang_thai)}</div>
+      <div class="grid2" style="margin-top:10px"><button class="btn" data-send="/duyet ${o.id}">Duyệt</button><button class="btn red" data-send="/bo ${o.id}">Bỏ</button></div></div>`).join("") : `<div class="empty">Không có lệnh chờ duyệt</div>`;
+  h += `</section>`;
+  h += composer(d);
+  const groups = [];
+  d.nhan_su.forEach((a) => { const k = a.ten_khoi || "Nhân sự"; let g = groups.find((x) => x.k === k); if (!g) groups.push(g = {k, xs: []}); g.xs.push(a); });
+  h += `<section><div class="row" style="margin-top:16px"><div class="label" style="margin:0">Sơ đồ quỹ · ${d.nhan_su.length} vị trí</div><span class="sub">Chủ = nhà đầu tư, quyết cuối</span></div>
+    ${groups.map((g) => `<div class="khoi">${esc(g.k)}</div><div class="grid2">${g.xs.map((a) => `<div class="agent"><div class="row"><div class="av">${esc(a.viet_tat)}</div><span class="chip">${esc(a.ai)}</span></div>
+      <div class="n">${esc(a.ten)}</div><div class="s">${esc(a.viec)}</div><div class="s">${esc(a.trang_thai)}</div>
+      ${a.diem ? `<div class="s">Điểm tháng ${num(a.diem.diem,1)} · đúng ${pct(a.diem.ty_le)}${a.diem.bia ? ` · <span class="bad">bịa ${a.diem.bia}</span>` : ""}</div>` : ""}</div>`).join("")}</div>`).join("")}</section>`;
+  const aiu = ai.tran ? Math.min(100, ai.thang / ai.tran * 100) : 0;
+  if (d.quy) {
+    const n = d.quy.nav;
+    h += `<section class="card"><div class="row"><b>Quỹ QBK</b><button class="btn ghost" style="height:34px" data-tab="quy">Xem quỹ</button></div>
+      <div class="grid3" style="margin-top:10px"><div class="tile"><div class="k">NAV (USD ảo)</div><div class="v">${num(n.nav,0)}</div></div>
+      <div class="tile"><div class="k">Giá đơn vị</div><div class="v">${num(n.gia_don_vi,4)}</div></div>
+      <div class="tile"><div class="k">Sụt so với đỉnh</div><div class="v ${n.sut_giam_pct < 0 ? "bad" : ""}">${num(n.sut_giam_pct)}%</div></div></div>
+      ${d.quy.canh_bao ? `<div class="banner">${esc(d.quy.canh_bao)}</div>` : ""}${d.quy.de_xuat_cio ? `<div class="banner">CIO có đề xuất chia vốn chờ bạn duyệt · tab Quỹ</div>` : ""}
+      <div class="row" style="margin-top:14px"><b>Chi phí AI tháng</b><span>${num(ai.thang,3)} / ${num(ai.tran,0)} USD</span></div>
+      <div class="bar"><div style="width:${aiu}%;background:${aiu >= 80 ? "#f0883e" : "var(--blue)"}"></div></div></section>`;
+  } else
+  h += `<section class="card"><div class="row"><b>Vốn từng loại lệnh</b><span class="sub">mỗi loại ${num(w.von_moi_loai,0)} · rủi ro ${num(w.rui_ro_moi_lenh,0)}/lệnh</span></div>
+    ${Object.entries(w.loai).map(([g, x]) => `<div class="row" style="padding:6px 0;border-bottom:1px solid var(--line)"><div><b>${esc(g)}</b> <span class="sub">${esc(x.ten.replace(/^Lệnh . /, ""))}</span><div class="sub">${x.so_lenh} lệnh · thắng ${x.thang} / thua ${x.thua} · ${num(x.tong_r)}R · còn dùng ${num(x.con_dung_duoc)}</div></div>
+      <div style="text-align:right"><b>${num(x.von)}</b><div class="sub ${x.lai_lo >= 0 ? "ok" : "bad"}">${x.lai_lo >= 0 ? "+" : ""}${num(x.lai_lo)} (${x.lai_lo >= 0 ? "+" : ""}${num(x.lai_lo_pct,1)}%)</div></div></div>`).join("")}
+    <div class="sub" style="margin-top:6px">Tính từ ${esc((w.tu_luc || "").slice(0, 10))} · USDT ảo · đổi vốn: /ngansach 300</div>
+    <div class="row" style="margin-top:14px"><b>Chi phí AI tháng</b><span>${num(ai.thang,3)} / ${num(ai.tran,0)} USD</span></div>
+    <div class="bar"><div style="width:${aiu}%;background:${aiu >= 80 ? "#f0883e" : "var(--blue)"}"></div></div></section>`;
+  h += `<section class="card"><div class="label">Thông báo gần đây</div>${d.thong_bao.slice(0, 10).map((n) =>
+      `<div class="row" style="padding:6px 0;border-bottom:1px solid var(--line)"><span style="font-size:13px">${esc(n.tieu_de)}</span><span class="sub" style="white-space:nowrap">${esc(n.luc)}</span></div>`).join("") || `<div class="empty">Chưa có</div>`}</section>`;
+  return h;
+}
+
+const DESK_COLORS = {AI: "#7ab4ff", E: "#4fd1b5", R: "#f5c27a", C: "#c792ea", D: "#ff8a80"};
+function spark(rows) {
+  if (!rows || rows.length < 2) return `<div class="empty">Đường NAV hiện khi có từ 2 ngày dữ liệu</div>`;
+  const v = rows.map((r) => r.nav_unit), lo = Math.min(...v), hi = Math.max(...v), span = (hi - lo) || 1;
+  const pts = v.map((x, i) => `${(i / (v.length - 1) * 300).toFixed(1)},${(62 - (x - lo) / span * 54).toFixed(1)}`).join(" ");
+  const last = pts.split(" ").pop().split(",");
+  return `<svg class="spark" viewBox="0 0 300 70" preserveAspectRatio="none" role="img" aria-label="Giá đơn vị quỹ theo ngày, từ ${num(v[0],4)} tới ${num(v[v.length-1],4)}">
+    <line x1="0" y1="62" x2="300" y2="62" stroke="#262b35" stroke-width="1"/><polyline points="0,70 ${pts} 300,70" fill="rgba(122,180,255,.12)" stroke="none"/>
+    <polyline points="${pts}" fill="none" stroke="#7ab4ff" stroke-width="2" vector-effect="non-scaling-stroke"/>
+    <circle cx="${last[0]}" cy="${last[1]}" r="3" fill="#7ab4ff"/></svg>
+    <div class="row sub"><span>${esc(rows[0].day)} · ${num(v[0],4)}</span><span>${esc(rows[rows.length-1].day)} · ${num(v[v.length-1],4)}</span></div>`;
+}
+function viewQuy(d) {
+  const q = d.quy;
+  if (!q) return `<div class="card empty">Chế độ quỹ đang tắt (fund.enabled trong config.yaml)</div>`;
+  const n = q.nav, g = q.gioi_han, busy = (() => { const p = pendingInfo(); return p && Date.now() - p.t < WAIT_MS; })();
+  const desks = Object.entries(q.ban);
+  let h = `<section class="card"><div class="label">Quỹ QBK · từ ${esc((n.tu_luc || "").slice(0, 10))} · USD ảo</div>
+    <div class="grid2"><div class="tile"><div class="k">NAV</div><div class="v" style="font-size:20px">${num(n.nav)}</div></div>
+    <div class="tile"><div class="k">Giá đơn vị · đỉnh</div><div class="v">${num(n.gia_don_vi,4)} · ${num(n.dinh_gia_don_vi,4)}</div></div>
+    <div class="tile"><div class="k">Lời đã đóng · tạm tính</div><div class="v"><span class="${n.lai_da_dong >= 0 ? "ok" : "bad"}">${n.lai_da_dong >= 0 ? "+" : ""}${num(n.lai_da_dong)}</span> · <span class="${n.lai_tam_tinh >= 0 ? "ok" : "bad"}">${n.lai_tam_tinh >= 0 ? "+" : ""}${num(n.lai_tam_tinh)}</span></div></div>
+    <div class="tile"><div class="k">Sụt so với đỉnh</div><div class="v ${n.sut_giam_pct < 0 ? "bad" : ""}">${num(n.sut_giam_pct)}%</div></div></div>
+    ${spark(q.lich_su)}
+    <div class="sub">Vốn góp ${num(n.von_gop,0)} · ${num(n.don_vi,2)} đơn vị</div></section>`;
+  if (q.canh_bao) h += `<div class="banner">${esc(q.canh_bao)}</div>`;
+  const SPOT_TT = {thiet_ke: ["Đang thiết kế", "warn"], backtest: ["Đang backtest", "warn"], chay_thu: ["Chạy thử ảo", "warn"], chinh_thuc: ["Đang chạy", "ok"]}[q.phong_spot || "thiet_ke"] || ["Đang thiết kế", "warn"];
+  h += `<section class="card"><div class="row"><div class="label" style="margin:0">Phòng ban</div><button class="btn ghost" data-3d="1" style="height:36px">Văn phòng 3D</button></div>
+    <div class="dept"><div class="row"><b>Phòng Futures</b><span class="chip ok">Đang chạy</span></div>
+      <div class="sub">BTC · Long và Short · có SL. Bàn ${desks.map(([k]) => esc(k)).join(", ")} · PM Bàn AI, Kỹ thuật, Execution</div></div>
+    <div class="dept"><div class="row"><b>Phòng Spot</b><span class="chip ${SPOT_TT[1]}">${SPOT_TT[0]}</span></div>
+      <div class="sub">Chỉ mua · không đòn bẩy · không cắt lỗ · bán theo chu kỳ 4 năm. Mỗi lần mua 20% vốn ở vùng OB ngày + tuần chồng nhau; altcoin chỉ mua khi BTC vừa chạm vùng. Code canh giá, PM Spot (AI) xem 1 lần khi chạm vùng.${q.phong_spot === "chinh_thuc" ? "" : " Sổ chạy thử, chưa tính vào NAV."}</div>
+      ${q.spot ? `<div class="grid3" style="margin-top:8px"><div class="tile"><div class="k">Giá trị</div><div class="v">${num(q.spot.gia_tri,0)}</div></div>
+        <div class="tile"><div class="k">Lãi</div><div class="v ${q.spot.lai_pct >= 0 ? "ok" : "bad"}">${q.spot.lai_pct >= 0 ? "+" : ""}${num(q.spot.lai_pct)}%</div></div>
+        <div class="tile"><div class="k">Tiền mặt</div><div class="v">${num(q.spot.tien_mat,0)}</div></div></div>
+        ${q.spot.vi_the.map((p) => `<div class="zone"><span><b>${esc(p.coin)}</b> · ${p.so_lan_mua} lần mua · giá vốn ${px(p.gia_von)}</span><b class="${p.lai_pct >= 0 ? "ok" : "bad"}">${p.lai_pct >= 0 ? "+" : ""}${num(p.lai_pct)}%</b></div>`).join("")}
+        ${Object.entries(q.spot.vung || {}).slice(0, 6).map(([c, zs]) => zs.length ? `<div class="zone"><span>Canh ${esc(c)}</span><span class="sub">${zs.slice(0, 2).map((z) => `${px(z.tu)}–${px(z.den)} (${z.so_ob} OB)`).join(" · ")}</span></div>` : "").join("")}
+        <div class="sub" style="margin-top:6px">Cửa altcoin: ${q.spot.cua_btc_mo ? "đang mở (BTC vừa chạm vùng)" : "đóng"}</div>` : ""}</div>
+    <div class="dept"><div class="row"><b>Khối dùng chung</b><span class="chip">Độc lập</span></div>
+      <div class="sub">Risk, Compliance, Kiểm duyệt, Phản biện, Vĩ mô, Thanh khoản, Kế toán, Kiểm toán, Performance, Thư ký, Thư viện</div></div></section>`;
+  h += `<section class="card"><div class="label">Chia vốn · CIO đề xuất, chủ duyệt</div>
+    <div class="stack" role="img" aria-label="Tỷ lệ vốn các bàn">${desks.map(([k, x]) => `<div style="width:${x.ty_le}%;background:${DESK_COLORS[k] || "#8b94a3"}"></div>`).join("")}</div>
+    <div class="legend">${desks.map(([k, x]) => `<span><span class="dot" style="background:${DESK_COLORS[k] || "#8b94a3"}"></span>${esc(k)} ${num(x.ty_le,0)}%</span>`).join("")}<span><span class="dot" style="background:var(--line)"></span>Tiền mặt ${num(q.tien_mat_pct,0)}%</span></div>
+    ${q.phan_bo_luc ? `<div class="sub" style="margin-top:6px">Lần đổi gần nhất: ${esc(q.phan_bo_luc)}</div>` : ""}</section>`;
+  if (q.de_xuat_cio) h += `<section class="card" style="border-color:#4a3216"><div class="label">Đề xuất của CIO · chờ bạn duyệt</div><pre>${esc(q.de_xuat_cio)}</pre>
+    <div class="grid2" style="margin-top:10px"><button class="btn" data-send="/phanbo duyet" ${busy || !TOKEN ? "disabled" : ""}>Duyệt</button><button class="btn red" data-send="/phanbo bo" ${busy || !TOKEN ? "disabled" : ""}>Bỏ</button></div></section>`;
+  h += desks.map(([k, x]) => `<section class="card"><div class="row"><b>${esc(x.ten)}</b><span class="chip ${x.trang_thai === "nghi" ? "bad" : x.trang_thai === "thu_nghiem" ? "warn" : "ok"}">${esc(x.trang_thai_ten)}</span></div>
+    <div class="grid3" style="margin-top:10px"><div class="tile"><div class="k">Vốn ${num(x.ty_le,0)}%</div><div class="v">${num(x.von,0)}</div></div>
+    <div class="tile"><div class="k">Tổng R</div><div class="v ${x.tong_r >= 0 ? "ok" : "bad"}">${x.tong_r >= 0 ? "+" : ""}${num(x.tong_r)}</div></div>
+    <div class="tile"><div class="k">Winrate</div><div class="v">${pct(x.winrate)}</div></div></div>
+    <div class="sub" style="margin-top:8px">${x.so_lenh} lệnh · thắng ${x.thang} / thua ${x.thua} · đang giữ rủi ro ${num(x.rui_ro_dang_mo)} · Sharpe ${x.sharpe === null ? "– (chưa đủ 5 ngày)" : num(x.sharpe)}</div>
+    <div class="sub">Sụt ${num(x.sut_giam_r,1)}R${x.sut_toi_da_r ? ` / giới hạn ${num(x.sut_toi_da_r,0)}R (vượt thì Risk tự cho nghỉ)` : ""}</div>
+    <div class="grid2" style="margin-top:10px">${x.trang_thai === "nghi" ? `<button class="btn ghost" data-send="/phanbo ${esc(k)} bat" ${busy || !TOKEN ? "disabled" : ""}>Bật lại</button>` : `<button class="btn red" data-send="/phanbo ${esc(k)} nghi" ${busy || !TOKEN ? "disabled" : ""}>Cho nghỉ</button>`}<button class="btn ghost" data-filter-desk="${esc(k)}">Xem lệnh</button></div></section>`).join("");
+  h += `<section class="card"><div class="label">Risk toàn quỹ · có quyền chặn mọi lệnh</div>
+    <div class="zone"><span>Rủi ro đang mở</span><b>${num(n.rui_ro_dang_mo)} (${num(n.rui_ro_dang_mo_pct)}% / tối đa ${num(g.rui_ro_mo_toi_da_pct_nav,0)}% NAV)</b></div>
+    <div class="zone"><span>Cùng tài sản cùng hướng</span><b>tối đa ${num(g.rui_ro_cung_huong_toi_da_pct_nav,0)}% NAV</b></div>
+    <div class="zone"><span>Rủi ro mỗi lệnh</span><b>${num(g.rui_ro_moi_lenh_pct_von_ban,1)}% vốn bàn${q.he_so_rui_ro !== 1 ? ` × ${q.he_so_rui_ro}` : ""}</b></div>
+    <div class="zone"><span>Quỹ sụt ${num(g.sut_giam_mot_nua_pct,0)}% / ${num(g.sut_dung_pct,0)}%</span><b>giảm nửa rủi ro / dừng lệnh mới</b></div></section>`;
+  h += `<section class="card"><div class="label">Rót / rút vốn ảo</div>
+    <div class="row" style="gap:8px"><label for="flowInp" class="sr-only">Số tiền</label><input id="flowInp" class="inp" inputmode="decimal" placeholder="Số tiền USD, ví dụ 5000">
+    <button class="btn ghost" id="rotBtn" ${busy || !TOKEN ? "disabled" : ""}>Rót</button><button class="btn red" id="rutBtn" ${busy || !TOKEN ? "disabled" : ""}>Rút</button></div>
+    ${q.dong_tien.map((f) => `<div class="zone"><span>${esc(f.luc)} · ${esc(f.loai)}${f.ghi_chu ? " · " + esc(f.ghi_chu) : ""}</span><b>${num(f.usd)} @ ${num(f.gia_don_vi,4)}</b></div>`).join("")}</section>`;
+  h += `<section class="card"><div class="label">Nhật ký kiểm soát (Risk, Compliance)</div>${q.kiem_soat.length ? q.kiem_soat.slice(0, 12).map((c) =>
+    `<div class="zone"><span><b class="${c.chan ? "bad" : "ok"}">${c.chan ? "CHẶN" : "Cho qua"}</b> · ${esc(c.bo_phan)} · ${esc(c.ban)} ${esc(c.huong || "")}${c.ly_do.length ? `<br><span class="sub">${esc(c.ly_do.join("; "))}</span>` : ""}</span><span class="sub" style="white-space:nowrap">${esc(c.luc)}</span></div>`).join("")
+    : `<div class="empty">Chưa có lượt kiểm soát</div>`}</section>`;
+  return h;
+}
+
+const usd = (x) => x === null || x === undefined ? "–" : Math.abs(x) >= 1e9 ? num(x / 1e9, 1) + " tỷ" : Math.abs(x) >= 1e6 ? num(x / 1e6, 1) + " tr" : Math.abs(x) >= 1e3 ? num(x / 1e3, 0) + "k" : num(x, 0);
+const px = (x) => x >= 100 ? num(x, 2) : x >= 1 ? num(x, 4) : Number(x).toPrecision(5);
+function zonesHtml(c) {
+  if (!c.vung.length) return `<div class="empty">Không thấy tường lệnh nổi bật trong ±5%</div>`;
+  return c.vung.map((z) => `<div class="zone"><span><b class="${z.phia === "mua" ? "ok" : "bad"}">${z.phia === "mua" ? "▼ Tường mua" : "▲ Tường bán"}</b> ${px(z.tu)} – ${px(z.den)} <span class="sub">(${z.cach_gia_pct > 0 ? "+" : ""}${num(z.cach_gia_pct)}%)</span>
+    <br><span class="sub">${usd(z.usd)} USD · ${z.san.length} sàn (${esc(z.san.join(", "))}) · thấy ${z.lan_thay} lần${z.trung_eq ? " · trùng EQH/EQL" : ""}${z.trung_thanh_ly ? " · trùng thanh lý" : ""}</span></span><span class="score">${z.diem}/5</span></div>`).join("");
+}
+function coinCard(c, open) {
+  return `<details class="card" ${open ? "open" : ""}><summary><div class="row"><b>${esc(c.coin)}</b><span>${px(c.gia)}</span></div>
+    <div class="sub" style="margin-top:4px">±1% ${usd(c.sau_1)} · lệch ${c.lech === null ? "–" : (c.lech > 0 ? "+" : "") + Math.round(c.lech * 100) + "%"}${c.funding !== null ? ` · funding ${c.funding > 0 ? "+" : ""}${num(c.funding,4)}%` : ""} · ${c.san.length} nguồn · ${esc(c.luc)}</div></summary>
+    <div class="grid3" style="margin-top:10px"><div class="tile"><div class="k">Spot ±1%</div><div class="v">${usd(c.spot_1)}</div></div><div class="tile"><div class="k">Futures ±1%</div><div class="v">${usd(c.perp_1)}</div></div><div class="tile"><div class="k">±2%</div><div class="v">${usd(c.sau_2)}</div></div></div>
+    <div class="sub" style="margin-top:8px">Spread ${num(c.spread)} bps · OI ${usd(c.oi)} USD${c.premium !== null && c.premium !== undefined ? ` · Coinbase so với Binance ${c.premium > 0 ? "+" : ""}${num(c.premium,1)} bps` : ""}</div>
+    ${c.thanh_ly ? `<div class="sub">Thanh lý 24h (OKX): Long ${usd(c.thanh_ly.long_usd)} · Short ${usd(c.thanh_ly.short_usd)}</div>` : ""}
+    <div class="label" style="margin-top:10px">Vùng thanh khoản</div>${zonesHtml(c)}<div class="sub" style="margin-top:6px">Nguồn: ${esc(c.san.join(", "))}</div></details>`;
+}
+function tkList(d) {
+  const q = TKQ.trim().toUpperCase();
+  let xs = d.thanh_khoan.coin.filter((c) => !q || c.coin.includes(q));
+  const key = {hang: (c) => c.hang || 1e9, mong: (c) => c.sau_1 || 0, mua: (c) => -(c.lech || 0), ban: (c) => c.lech || 0, fund: (c) => -Math.abs(c.funding || 0)}[TKSORT];
+  xs = xs.slice().sort((a, b) => key(a) - key(b)).slice(0, 40);
+  return xs.length ? xs.map((c) => coinCard(c, q && xs.length === 1)).join("") : `<div class="card empty">Không có coin "${esc(q)}"</div>`;
+}
+function viewTk(d) {
+  const t = d.thanh_khoan;
+  if (!t) return `<div class="card empty">Chưa có lần quét thanh khoản nào (chạy mỗi giờ trên GitHub)</div>`;
+  const btc = t.coin.find((c) => c.coin === "BTC");
+  let h = `<section class="card"><div class="label">Analyst Thanh khoản · ${t.so_coin} coin trừ meme</div>
+    <div class="sub">Quét ${esc(t.luc)} · lần này ${t.quet_lan_nay} coin trong ${num(t.giay,0)} giây · danh sách: ${esc(t.nguon_danh_sach || "–")}</div>
+    <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap">${Object.entries(t.san).map(([k, v]) => `<span class="chip ${v.startsWith("ok") ? "ok" : "bad"}" title="${esc(v)}">${esc(k)}${v.startsWith("ok") ? "" : " · " + (v.startsWith("bị chặn") ? "bị chặn" : "lỗi")}</span>`).join("")}</div>
+    <div class="sub" style="margin-top:8px">Tường lệnh có thể bị rút (lệnh giả). Điểm cao = nhiều sàn cùng thấy, còn nguyên qua nhiều lần quét. Chỉ là thông tin tham khảo.</div></section>`;
+  if (btc) h += coinCard(btc, true);
+  h += `<div class="filters" role="group" aria-label="Sắp xếp">${[["hang","Vốn hóa"],["mong","Mỏng nhất"],["mua","Bên mua dày"],["ban","Bên bán dày"],["fund","Funding lệch"]].map(([k, l]) =>
+    `<button data-tksort="${k}" class="${TKSORT === k ? "on" : ""}">${l}</button>`).join("")}</div>
+    <label for="tkSearch" class="sr-only">Tìm coin</label><input id="tkSearch" class="inp" placeholder="Tìm coin, ví dụ ETH" value="${esc(TKQ)}" autocomplete="off">
+    <div id="tkList" style="margin-top:4px">${tkList(d)}</div>`;
+  return h;
+}
+
+function viewHop(d) {
+  if (!d.cuoc_hop.length) return `<div class="card empty">Chưa có cuộc họp nào. Các agent họp khi code tìm thấy vùng lệnh mới.</div>`;
+  return d.cuoc_hop.map((m, i) => `<details class="card" ${i === 0 ? "open" : ""}><summary>
+      <div class="row"><b>Họp #${esc(m.id)}</b><span class="sub">${esc(m.luc)}</span></div>
+      <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap">${m.phuong_an.map((p) => `${pill(p.huong)} <span class="chip">Lệnh ${esc(p.hang)} · ${num(p.entry)}</span>`).join(" ")}
+      ${m.ket_luan.map((k) => `<span class="chip ${k.quyet_dinh === "Duyệt" ? "ok" : k.quyet_dinh === "Bỏ" ? "bad" : "warn"}">PM ${esc(k.quyet_dinh.toLowerCase())} ${esc(k.hang)}</span>`).join(" ")}</div>
+      <div class="sub" style="margin-top:6px">Chi phí AI ${num(m.chi_phi,3)} USD · bấm để xem biên bản</div></summary>
+      ${m.chart ? `<img class="chart" src="${m.chart}" alt="Chart BTCUSDT 1H của cuộc họp ${esc(m.id)}">` : ""}
+      <pre>${esc(m.bien_ban)}</pre></details>`).join("");
+}
+
+function viewLenh(d) {
+  const open = (o) => ["CHO_KHOP", "DANG_CHAY"].includes(o.ma_trang_thai);
+  const list = d.lenh.filter((o) => (!DESK || (DESK_GRADES[DESK] || []).includes(o.hang)) && (FILTER === "tat" || (FILTER === "td" ? o.theo_doi : !o.theo_doi && (FILTER === "mo" ? open(o) : !open(o)))));
+  let h = `<div class="filters" role="group" aria-label="Lọc lệnh">${[["mo","Đang mở"],["dong","Đã đóng"],["td","Theo dõi"],["tat","Tất cả"]].map(([k, t]) =>
+    `<button data-filter="${k}" class="${FILTER === k ? "on" : ""}">${t}</button>`).join("")}${DESK ? `<button data-filter-clear="1" class="on">Bàn ${esc(DESK)} ✕</button>` : ""}</div>`;
+  h += list.length ? list.map((o) => `<section class="card"><div class="row"><div><b>#${o.id} · ${o.theo_doi ? "Vùng" : "Lệnh"} ${esc(o.hang)}${["C","D","E","R"].includes(o.hang) ? " · code tự đặt" : ""}</b> ${pill(o.huong)}</div>
+      <span class="${o.theo_doi ? "sub" : statusClass(o.ma_trang_thai)}" style="font-weight:600;text-align:right">${esc(o.trang_thai)}</span></div>
+      <div class="grid3" style="margin-top:10px"><div class="tile"><div class="k">Entry</div><div class="v">${num(o.entry)}</div></div>
+      <div class="tile"><div class="k">SL</div><div class="v bad">${num(o.sl)}</div></div><div class="tile"><div class="k">TP</div><div class="v ok">${num(o.tp)}</div></div></div>
+      <div class="sub" style="margin-top:8px">${esc(o.luc)} · RR 1:${num(o.rr)} · KL ${num(o.khoi_luong,0)} USDT · PM ${esc(o.giam_doc.toLowerCase())} · Chủ: ${esc(o.chu.toLowerCase())}</div>
+      ${(o.tp_muc || []).length > 1 ? `<div class="sub" style="margin-top:8px">Chốt lời: ${o.tp_muc.map((x, i) => `TP${i + 1} ${num(x.gia)} (${x.phan_tram}%)${i < o.da_chot ? " ✓" : ""}`).join(" · ")}</div>` : ""}
+      ${o.theo_doi ? `<div class="sub" style="margin-top:6px">Chưa duyệt, không đặt lệnh, không tính vào báo cáo${o.ket_qua_r !== null ? ` · nếu vào: ${o.ket_qua_r >= 0 ? "+" : ""}${num(o.ket_qua_r)}R` : ""}</div>` : o.ket_qua_r !== null ? `<div style="margin-top:6px" class="${o.ket_qua_r >= 0 ? "ok" : "bad"}"><b>${o.ket_qua_r >= 0 ? "+" : ""}${num(o.ket_qua_r)}R · ${o.lai_lo >= 0 ? "+" : ""}${num(o.lai_lo)} USDT ảo</b></div>` : ""}
+      ${o.ly_do_huy ? `<div class="sub">Hủy: ${esc(o.ly_do_huy)}</div>` : ""}</section>`).join("")
+    : `<div class="card empty">Không có lệnh</div>`;
+  return h;
+}
+
+function viewSo(d) {
+  const s = d.bao_cao.so_lieu, cmp = d.so_sanh;
+  const cmpRow = (name, x) => `<div class="tile" style="margin-bottom:8px"><div class="k">${name}</div>
+      <div class="v" style="font-size:14px">${x.so_lenh} lệnh · khớp ${x.khop} · thắng ${x.thang} / thua ${x.thua}</div>
+      <div class="k" style="margin-top:4px">Winrate ${pct(x.winrate)} · <b class="${x.tong_r >= 0 ? "ok" : "bad"}">${x.tong_r >= 0 ? "+" : ""}${num(x.tong_r)}R</b> · đang mở ${x.dang_mo} · hủy ${x.huy}</div></div>`;
+  const cmpCard = cmp ? `<section class="card"><div class="label">So sánh hai cách vào lệnh${cmp.tu_luc ? " · từ " + esc(cmp.tu_luc.slice(0, 10)) : ""}</div>
+      ${cmp.tu_luc ? (cmp.e ? cmpRow("OB 1H thuận swing · Entry mép · dời SL theo giá (lệnh E)", cmp.e) : "") + (cmp.r ? cmpRow("RSI 4H cắt 50 thuận EMA200 · dời SL theo giá (lệnh R)", cmp.r) : "") + (cmp.may && cmp.may.so_lenh ? cmpRow("Lệnh C (đã tắt)", cmp.may) : "") + (cmp.d && cmp.d.so_lenh ? cmpRow("Lệnh D (đã tắt)", cmp.d) : "") + cmpRow("Qua họp agent · PM Bàn AI duyệt (lệnh A/B)", cmp.agent) + cmpRow("Qua họp agent · PM Bàn AI để chờ (lệnh A/B)", cmp.agent_cho)
+        : `<div class="empty">Chưa có lệnh E / R nào</div>`}</section>` : "";
+  return cmpCard + `<section class="card"><div class="label">Tháng ${esc(d.bao_cao.thang)}</div><div class="grid2">
+      <div class="tile"><div class="k">Winrate</div><div class="v">${pct(s.winrate)}</div></div>
+      <div class="tile"><div class="k">Doanh số ảo</div><div class="v ${s.doanh_so_usd >= 0 ? "ok" : "bad"}">${num(s.doanh_so_usd)} USDT</div></div>
+      <div class="tile"><div class="k">Tổng R</div><div class="v">${num(s.tong_r)}R</div></div>
+      <div class="tile"><div class="k">RR kế hoạch / thực tế</div><div class="v">1:${num(s.rr_ke_hoach_tb)} / 1:${num(s.rr_thuc_te_tb)}</div></div>
+      <div class="tile"><div class="k">Thắng / Thua / Hủy</div><div class="v">${s.thang} / ${s.thua} / ${s.huy}</div></div>
+      <div class="tile"><div class="k">Profit factor</div><div class="v">${num(s.profit_factor)}</div></div></div></section>
+    <section class="card"><div class="label">Báo cáo hiệu quả</div><pre>${esc(d.bao_cao.van_ban)}</pre></section>
+    <section class="card"><div class="label">Bảng điểm agent</div><pre>${esc(d.bao_cao.bang_diem || "Chưa có điểm")}</pre></section>`;
+}
+
+function viewTv(d) {
+  const p = pendingInfo(), busy = p && Date.now() - p.t < WAIT_MS;
+  const learned = d.thong_bao.filter((n) => n.loai === "kien_thuc" || (n.loai === "app_lenh" && n.tieu_de.includes("/hocfile"))).slice(0, 3);
+  let h = `<section class="card"><div class="label">Tải tài liệu dạy agent</div>
+    ${TOKEN ? "" : `<div class="banner" style="margin-top:0">Chưa cài token. Bấm ⚙️ góc trên để nhập.</div>`}
+    <div class="sub" style="margin-bottom:8px">PDF, DOCX, TXT, MD, ảnh, video ngắn · tối đa 15MB</div>
+    <label for="upFile" class="sr-only">Chọn tệp</label>
+    <input id="upFile" class="inp" type="file" accept=".pdf,.docx,.txt,.md,.png,.jpg,.jpeg,.webp,.gif,.mp4,.mov,.webm" style="height:auto">
+    <label for="upAgent" class="sr-only">Dạy cho</label>
+    <select id="upAgent" class="inp" style="margin-top:8px"><option value="">Thư viện tự chọn agent</option><option value="@kythuat">Kỹ thuật</option>
+      <option value="@vimo">Vĩ mô</option><option value="@kiemduyet">Kiểm duyệt</option><option value="@phanbien">Phản biện</option>
+      <option value="@giamdoc">PM Bàn AI</option><option value="@tatca">Tất cả</option></select>
+    <label for="upNote" class="sr-only">Ghi chú</label>
+    <input id="upNote" class="inp" style="margin-top:8px" maxlength="300" placeholder="Ghi chú cho Thư viện (không bắt buộc)">
+    <div class="row" style="margin-top:10px"><span class="sub" id="upMsg">${busy ? `Đang xử lý lệnh gửi lúc ${esc(p.luc)}…` : "Bài học hiện sau khoảng 1–2 phút"}</span>
+      <button class="btn" id="upBtn" ${busy || !TOKEN ? "disabled" : ""}>Tải lên</button></div>
+    ${learned.map((n) => `<div class="reply"><div class="row"><b>${esc(n.tieu_de)}</b><span class="sub">${esc(n.luc)}</span></div><pre style="margin-top:4px">${esc(n.noi_dung)}</pre></div>`).join("")}</section>
+    <section class="card"><div class="label">Dạy bằng lời hoặc link YouTube</div><div class="sub">Gõ ở ô Ra lệnh (Tổng quan) hoặc Telegram:</div>${copyBtn("/hoc @kythuat ")}</section>`;
+  h += d.thu_vien.length ? d.thu_vien.map((k) => `<section class="card"><div class="row"><b>#${k.id} ${esc(k.tieu_de)}</b></div>
+      <div class="sub" style="margin:4px 0 8px">Cho ${esc(k.cho.join(", "))} · nguồn ${esc(k.nguon)}</div><div style="font-size:13px">${esc(k.tom_tat)}</div>
+      <ul style="margin:8px 0 0;padding-left:18px;font-size:13px;color:var(--ink2)">${k.quy_tac.map((r) => `<li>${esc(r)}</li>`).join("")}</ul>
+      ${copyBtn("/xoakt " + k.id)}</section>`).join("") : `<div class="card empty">Thư viện chưa có bài học</div>`;
+  return h;
+}
+
+// ---------- gửi lệnh qua GitHub (chạy hệ thống ngay) ----------
+const WAIT_MS = 120000;
+function pendingInfo() { try { return JSON.parse(store.get("qbk_sent") || "null"); } catch (_) { return null; } }
+function composer(d) {
+  const p = pendingInfo(), busy = p && Date.now() - p.t < WAIT_MS;
+  const replies = d.thong_bao.filter((n) => ["app_lenh", "tra_loi", "kien_thuc"].includes(n.loai)).slice(0, 5);
+  return `<section class="card"><div class="label">Ra lệnh cho công ty</div>
+    ${TOKEN ? "" : `<div class="banner" style="margin-top:0">Chưa cài gửi lệnh. Bấm biểu tượng ⚙️ góc trên để nhập token.</div>`}
+    <label for="cmdBox" class="sr-only">Lệnh hoặc câu hỏi</label>
+    <textarea id="cmdBox" placeholder="Nhắn PM Bàn AI, hoặc gõ lệnh: /quy · /phanbo · /thanhkhoan ETH · @kythuat câu hỏi · /hoc @kythuat nội dung (mỗi dòng một lệnh)"></textarea>
+    <div class="row" style="margin-top:10px"><span class="sub" id="sendState">${busy ? `Đang xử lý lệnh gửi lúc ${esc(p.luc)}…` : "Kết quả hiện sau khoảng 1–2 phút"}</span>
+      <button class="btn" id="sendBtn" ${busy || !TOKEN ? "disabled" : ""}>Gửi</button></div>
+    ${d.quy ? "" : `<div class="row" style="gap:8px;margin-top:10px"><label for="budgetInp" class="sr-only">Vốn cho mỗi loại lệnh</label>
+      <input id="budgetInp" class="inp" inputmode="decimal" placeholder="Vốn cho mỗi loại lệnh A–E (USDT ảo)">
+      <button class="btn ghost" id="budgetBtn" ${busy || !TOKEN ? "disabled" : ""}>Cấp</button></div>`}
+    <button class="btn" style="width:100%;margin-top:10px" data-send="/hop" data-ask="Triệu tập họp ngay? Có vùng lệnh thì tốn khoảng 0,25–0,5 USD tiền AI; không có vùng thì không tốn." ${busy || !TOKEN ? "disabled" : ""}>Họp ngay</button>
+    ${replies.length ? `<div style="margin-top:12px">${replies.map((n) => `<div class="reply"><div class="row"><b>${esc(n.tieu_de)}</b><span class="sub">${esc(n.luc)}</span></div>
+      <pre style="margin-top:4px">${esc(n.noi_dung)}</pre></div>`).join("")}</div>` : ""}</section>`;
+}
+async function sendCommands(text) {
+  const lines = text.split("\n").map((x) => x.trim()).filter(Boolean);
+  if (!lines.length) return;
+  if (!TOKEN) { alert("Chưa có token gửi lệnh. Bấm ⚙️ để cài."); return; }
+  const p = pendingInfo();
+  if (p && Date.now() - p.t < WAIT_MS) { alert("Lệnh trước đang được xử lý, đợi 1–2 phút rồi gửi tiếp."); return; }
+  const c = DATA.dieu_khien;
+  const r = await fetch(`https://api.github.com/repos/${c.repo}/actions/workflows/${c.workflow}/dispatches`, {
+    method: "POST", headers: {"Authorization": "Bearer " + TOKEN, "Accept": "application/vnd.github+json",
+                              "X-GitHub-Api-Version": "2022-11-28"},
+    body: JSON.stringify({ref: c.ref, inputs: {lenh: lines.slice(0, 10).join("\n")}})});
+  if (r.status === 204) {
+    store.set("qbk_sent", JSON.stringify({t: Date.now(), luc: new Date().toLocaleTimeString("vi-VN", {hour: "2-digit", minute: "2-digit"})}));
+    render();
+    setTimeout(async () => { try { DATA = await load(PASS); render(); } catch (_) {} }, WAIT_MS + 15000);
+    return true;
+  }
+  const msg = {401: "Token sai hoặc đã hết hạn", 403: "Token không có quyền Actions: Read and write", 404: "Token chưa được cấp quyền cho repo QBK-Company", 422: "Workflow chưa nhận lệnh (cần Merge bản mới nhất)"}[r.status];
+  alert("Không gửi được: " + (msg || ("lỗi " + r.status)));
+}
+// ---------- tải tài liệu: đưa tệp lên nhánh qbk-uploads (repo private) rồi gửi lệnh /hocfile ----------
+const UP_BRANCH = "qbk-uploads", UP_MAX = 15 * 1024 * 1024;
+function gh(path, opt = {}) {
+  return fetch(`https://api.github.com/repos/${DATA.dieu_khien.repo}/${path}`, {...opt,
+    headers: {"Authorization": "Bearer " + TOKEN, "Accept": "application/vnd.github+json", "X-GitHub-Api-Version": "2022-11-28"}});
+}
+function safeName(name) {
+  const dot = name.lastIndexOf("."), ext = dot > 0 ? name.slice(dot).toLowerCase().replace(/[^a-z0-9.]/g, "") : "";
+  const base = (dot > 0 ? name.slice(0, dot) : name).normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[đĐ]/g, "d")
+    .replace(/[^A-Za-z0-9_-]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 60) || "tai-lieu";
+  return Date.now() + "-" + base + ext;
+}
+const fileB64 = (f) => new Promise((ok, no) => { const r = new FileReader(); r.onload = () => ok(String(r.result).split(",")[1] || ""); r.onerror = () => no(r.error); r.readAsDataURL(f); });
+async function uploadDoc() {
+  const f = $("#upFile").files[0], msg = (t) => { const m = $("#upMsg"); if (m) m.textContent = t; };
+  if (!f) { alert("Chọn tệp trước"); return; }
+  if (!TOKEN) { alert("Chưa có token. Bấm ⚙️ để cài."); return; }
+  if (f.size > UP_MAX) { alert("Tệp lớn hơn 15MB. Hãy dùng tệp nhỏ hơn hoặc gửi link YouTube bằng /hoc."); return; }
+  const p = pendingInfo();
+  if (p && Date.now() - p.t < WAIT_MS) { alert("Lệnh trước đang được xử lý, đợi 1–2 phút rồi tải tiếp."); return; }
+  const path = "uploads/" + safeName(f.name);
+  const agent = $("#upAgent").value, note = $("#upNote").value.replace(/\s+/g, " ").trim();
+  msg("Đang đọc tệp…");
+  const body = JSON.stringify({message: "tài liệu từ app", branch: UP_BRANCH, content: await fileB64(f)});
+  msg("Đang tải lên…");
+  let r = await gh("contents/" + path, {method: "PUT", body});
+  if (r.status === 404 || r.status === 422) {          // nhánh chưa có: tạo từ main rồi thử lại
+    const ref = await gh("git/ref/heads/" + DATA.dieu_khien.ref);
+    if (ref.ok) {
+      await gh("git/refs", {method: "POST", body: JSON.stringify({ref: "refs/heads/" + UP_BRANCH, sha: (await ref.json()).object.sha})});
+      r = await gh("contents/" + path, {method: "PUT", body});
+    }
+  }
+  if (!r.ok) {
+    msg("Chưa tải được");
+    alert("Không tải được tệp: " + ({401: "token sai hoặc đã hết hạn", 403: "token thiếu quyền Contents: Read and write (xem ⚙️)", 404: "token thiếu quyền Contents: Read and write (xem ⚙️)", 413: "tệp quá lớn"}[r.status] || ("lỗi " + r.status)));
+    return;
+  }
+  msg("Đã tải lên, đang gọi Thư viện…");
+  await sendCommands(["/hocfile", path, agent, note].filter(Boolean).join(" "));
+}
+// token được mã hóa bằng mật khẩu app rồi mới lưu trên máy
+async function aesKey(pass, salt, usage) {
+  const base = await crypto.subtle.importKey("raw", new TextEncoder().encode(pass), "PBKDF2", false, ["deriveKey"]);
+  return crypto.subtle.deriveKey({name: "PBKDF2", salt, iterations: 210000, hash: "SHA-256"}, base, {name: "AES-GCM", length: 256}, false, [usage]);
+}
+const toB64 = (u8) => btoa(String.fromCharCode(...u8));
+async function saveToken(tok) {
+  const salt = crypto.getRandomValues(new Uint8Array(16)), iv = crypto.getRandomValues(new Uint8Array(12));
+  const ct = new Uint8Array(await crypto.subtle.encrypt({name: "AES-GCM", iv}, await aesKey(PASS, salt, "encrypt"), new TextEncoder().encode(tok)));
+  store.set("qbk_tok", JSON.stringify({salt: toB64(salt), iv: toB64(iv), ct: toB64(ct)}));
+  TOKEN = tok;
+}
+async function loadToken() {
+  const raw = store.get("qbk_tok"); if (!raw) return null;
+  try { const b = JSON.parse(raw);
+    const pt = await crypto.subtle.decrypt({name: "AES-GCM", iv: b64(b.iv)}, await aesKey(PASS, b64(b.salt), "decrypt"), b64(b.ct));
+    return new TextDecoder().decode(pt); } catch (_) { return null; }
+}
+function viewCaiDat() {
+  return `<section class="card"><div class="label">Gửi lệnh từ app</div>
+    <div class="sub" style="margin-bottom:10px">Dán token GitHub (fine-grained) cho repo QBK-Company với quyền <b>Actions: Read and write</b> (gửi lệnh, họp ngay) và <b>Contents: Read and write</b> (tải tài liệu).
+    Token được mã hóa bằng mật khẩu app và chỉ lưu trên máy này.</div>
+    <label for="tokInp" class="sr-only">Token GitHub</label>
+    <input id="tokInp" class="inp" type="password" autocomplete="off" placeholder="${TOKEN ? "Đã có token (nhập để thay)" : "github_pat_..."}">
+    <div class="grid2" style="margin-top:10px"><button class="btn" id="tokSave">Lưu token</button><button class="btn red" id="tokDel" ${TOKEN ? "" : "disabled"}>Xóa token</button></div>
+    <div class="sub" id="tokMsg" style="margin-top:8px">${TOKEN ? "Trạng thái: đã cài, gửi lệnh được." : "Trạng thái: chưa cài."}</div></section>
+    <section class="card"><div class="label">Cách tạo token</div><pre>1. Mở github.com/settings/personal-access-tokens/new
+2. Repository access: Only select repositories → QBK-Company
+3. Permissions → Actions: Read and write
+4. Permissions → Contents: Read and write (để tải tài liệu)
+5. Generate token, dán vào ô trên
+Token cũ: vào github.com/settings/personal-access-tokens → chọn token → Edit → thêm quyền Contents</pre></section>
+    <button class="btn ghost" style="width:100%" data-tab="tong">Quay lại Tổng quan</button>`;
+}
+
+function render() {
+  $("#updated").textContent = "Cập nhật " + DATA.cap_nhat;
+  $("#tabs").innerHTML = TABS.map(([k, t, ic]) => `<button data-tab="${k}" class="${TAB === k ? "on" : ""}" aria-current="${TAB === k ? "page" : "false"}">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ic}</svg>${t}</button>`).join("");
+  $("#view").innerHTML = ({tong: viewTong, quy: viewQuy, hop: viewHop, lenh: viewLenh, tk: viewTk, so: viewSo, tv: viewTv, caidat: viewCaiDat}[TAB] || viewTong)(DATA);
+}
+
+async function openApp(pass, remember) {
+  DATA = await load(pass);
+  PASS = pass;
+  TOKEN = await loadToken();
+  if (remember) store.set("qbk_pw", pass);
+  $("#lock").classList.add("hidden");
+  $("#app").classList.remove("hidden");
+  TAB = store.get("qbk_tab") || "tong";
+  if (TAB === "caidat") TAB = "tong";
+  render();
+}
+
+document.addEventListener("click", async (e) => {
+  const t3 = e.target.closest("[data-3d],.x3d");
+  if (t3) { const o = document.getElementById("v3d"); if (t3.classList.contains("x3d")) { o && o.remove(); return; }
+    if (!o) { const d = document.createElement("div"); d.id = "v3d"; d.className = "v3d";
+      d.innerHTML = '<iframe src="van-phong-3d.html" title="Văn phòng 3D Quỹ QBK"></iframe><button class="x3d" type="button">Đóng 3D</button>'; document.body.appendChild(d); } return; }
+  const t = e.target.closest("[data-tab],[data-filter],[data-copy],[data-send],[data-tksort],[data-filter-desk],[data-filter-clear],#sendBtn,#budgetBtn,#tokSave,#tokDel,#upBtn,#rotBtn,#rutBtn");
+  if (!t) return;
+  if (t.dataset.filterClear) { DESK = null; render(); return; }
+  if (t.dataset.tksort) { TKSORT = t.dataset.tksort; render(); return; }
+  if (t.dataset.filterDesk) { DESK = t.dataset.filterDesk; FILTER = "tat"; TAB = "lenh"; render(); window.scrollTo(0, 0); return; }
+  if (t.id === "rotBtn" || t.id === "rutBtn") { const v = ($("#flowInp").value || "").replace(",", "."); if (!(+v > 0)) { alert("Nhập số tiền, ví dụ 5000"); return; }
+    const cmd = (t.id === "rotBtn" ? "/rotvon " : "/rutvon ") + v; if (confirm("Gửi lệnh " + cmd + "?")) await sendCommands(cmd); return; }
+  if (t.dataset.send) { if (confirm(t.dataset.ask || ("Gửi lệnh " + t.dataset.send + "?"))) await sendCommands(t.dataset.send); return; }
+  if (t.id === "upBtn") { t.disabled = true; try { await uploadDoc(); } catch (err) { alert("Không tải được tệp: " + (err.message || err)); } if (document.contains(t)) t.disabled = false; return; }
+  if (t.id === "sendBtn") { const v = $("#cmdBox").value; t.disabled = true; if (!(await sendCommands(v))) t.disabled = false; return; }
+  if (t.id === "budgetBtn") { const v = ($("#budgetInp").value || "").replace(",", "."); if (!(+v > 0) || v === "") { alert("Nhập số tiền, ví dụ 200"); return; } await sendCommands("/ngansach " + v); return; }
+  if (t.id === "tokSave") { const v = $("#tokInp").value.trim(); if (!v) return; await saveToken(v); render(); return; }
+  if (t.id === "tokDel") { store.del("qbk_tok"); TOKEN = null; render(); return; }
+  if (t.dataset.tab) { TAB = t.dataset.tab; store.set("qbk_tab", TAB); render(); window.scrollTo(0, 0); }
+  if (t.dataset.filter) { FILTER = t.dataset.filter; render(); }
+  if (t.dataset.copy) { try { await navigator.clipboard.writeText(t.dataset.copy); t.textContent = "Đã chép"; } catch (_) { t.textContent = "Không chép được"; } }
+});
+document.addEventListener("input", (e) => {
+  if (e.target.id === "tkSearch") { TKQ = e.target.value; const box = $("#tkList"); if (box) box.innerHTML = tkList(DATA); }
+});
+$("#lockForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  $("#lockMsg").textContent = "Đang giải mã…";
+  try { await openApp($("#pw").value, $("#remember").checked); $("#lockMsg").textContent = ""; }
+  catch (err) { $("#lockMsg").textContent = err.name === "OperationError" ? "Sai mật khẩu" : (err.message || "Không mở được"); }
+});
+$("#refresh").addEventListener("click", async () => { try { DATA = await load(PASS); render(); } catch (err) { alert(err.message); } });
+$("#logout").addEventListener("click", () => { store.del("qbk_pw"); location.reload(); });
+$("#settings").addEventListener("click", () => { TAB = "caidat"; render(); window.scrollTo(0, 0); });
+setInterval(async () => { if (PASS && document.visibilityState === "visible") { try { DATA = await load(PASS); render(); } catch (_) {} } }, 5 * 60 * 1000);
+(async () => { const p = store.get("qbk_pw"); if (p) { try { await openApp(p, true); } catch (_) { store.del("qbk_pw"); } } })();
+</script>
+</body>
+</html>
