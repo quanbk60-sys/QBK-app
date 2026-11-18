@@ -87,11 +87,11 @@ footer.ui{bottom:0;padding-bottom:calc(12px + env(safe-area-inset-bottom,0px));d
 
 <header class="ui">
   <div class="brand panel">
-    <div><small>Văn phòng 3D · bản demo</small><b>Quỹ QBK</b></div>
+    <div><small id="srcTag">Văn phòng 3D · bản demo</small><b>Quỹ QBK</b></div>
     <div class="clock" id="clock">08:30<em>Giờ mô phỏng</em></div>
   </div>
   <div class="tools panel">
-    <button class="btn primary" id="meetBtn" type="button">Họp ngay</button>
+    <button class="btn primary" id="meetBtn" type="button">Xem lại họp</button>
     <button class="btn" id="speedBtn" type="button" aria-label="Tốc độ mô phỏng">Tốc độ 1×</button>
     <button class="btn" id="namesBtn" type="button" aria-pressed="true">Hiện tên</button>
     <button class="btn" id="logBtn" type="button" aria-pressed="true">Nhật ký</button>
@@ -102,7 +102,7 @@ footer.ui{bottom:0;padding-bottom:calc(12px + env(safe-area-inset-bottom,0px));d
 <aside id="log" class="panel" aria-label="Nhật ký văn phòng">
   <h2>Nhật ký văn phòng</h2>
   <ul id="logList"></ul>
-  <p>Bản demo giao diện. Lời thoại và số liệu là minh họa, chưa nối dữ liệu thật của hệ thống.</p>
+  <p id="logNote">Bản demo giao diện. Lời thoại và số liệu là minh họa, chưa nối dữ liệu thật của hệ thống.</p>
 </aside>
 
 <footer class="ui">
@@ -411,7 +411,7 @@ plant(R.vr.cx-4.3, R.vr.s*(2+10.2)); plant(R.vr.cx+4.3, R.vr.s*(2+10.2));
 
 /* --- Kế toán & Vận hành --- */
 const dTD = desk(R.gk,-3.9,3.5,-1,0,{mon:3}), dKTo = desk(R.gk,3.9,3.5,1,0);
-const dGk3 = desk(R.gk,-3.9,6.6,-1,0); desk(R.gk,3.9,6.6,1,0);
+const dGk3 = desk(R.gk,-3.9,6.6,-1,0), dGk4 = desk(R.gk,3.9,6.6,1,0);
 screen(R.gk,0,10.86,3.0,1.5,boardTex(),1.6);
 printer(R.gk,-3.4,10.45); SPOTS.printer.push(mkSpot(R.gk,-3.4,9.75,0,1,'stand',[[0,9.75]],'stand','Lấy tài liệu in'));
 SPOTS.extra.gk_board = mkSpot(R.gk,0.6,9.7,0,1,'stand',[],'talk','Rà bảng lệnh ảo');
@@ -503,88 +503,116 @@ function makeWoman(L){
 
 /* ---------- nhân sự: Phòng Futures, Phòng Spot, khối dùng chung (docs/PHONG_SPOT_FUTURES.md) ---------- */
 const STAFF = [
-  {id:'cio', name:'Quyên', role:'CIO', room:'gd', desk:dDir, model:'Claude Opus 5.5 · medium', extra:['gd_window'],
+  {id:'cio', key:'cio', name:'Quyên', role:'CIO', room:'gd', desk:dDir, model:'Claude Opus 5.5 · medium', extra:['gd_window'],
    look:{skin:'#f1caa6', hair:'#1a1210', style:'bun', top:'#7d2742', skirt:'#24242c', legs:'#3a2a2e', blazer:true},
    work:['Xem vốn của Phòng Futures và Phòng Spot','Chuẩn bị đề xuất chia vốn ngày 1','Đọc báo cáo Performance từng bàn'],
-   talk:['Phòng Spot chưa được chia vốn khi backtest chưa đạt.','Giữ ít nhất 10% tiền mặt.','Đề xuất chia vốn chờ chủ duyệt.']},
-  {id:'giam_doc', name:'Lan', role:'PM Bàn AI', room:'fu', desk:dVM, model:'Claude Opus 5.5 · medium', extra:['fu_board'],
+   talk:['Spot 80%, Futures 20%.','Đề xuất chia vốn chờ chủ duyệt.','So NAV với giữ BTC trước khi đổi tỷ lệ.']},
+  {id:'giam_doc', key:'giam_doc', name:'Lan', role:'PM Bàn AI', room:'fu', desk:dVM, model:'Claude Opus 5.5 · medium', extra:['fu_board'],
    look:{skin:'#f4d2b2', hair:'#2a1a12', style:'long', top:'#a23b5a', skirt:'#24242c', blazer:true},
    work:['Đọc đề xuất lệnh A/B','Rà kỷ luật vào lệnh','Xem lại biên bản họp trước'],
    talk:['Chủ chưa gõ /hop thì mình chưa họp.','Lệnh nào thiếu căn cứ thì bỏ.','Khối lượng để Risk tính.']},
-  {id:'ky_thuat', name:'Mai', role:'Kỹ thuật', room:'fu', desk:dKT, model:'Claude Opus 5.5 · high', extra:['fu_board'],
+  {id:'ky_thuat', key:'ky_thuat', name:'Mai', role:'Kỹ thuật', room:'fu', desk:dKT, model:'Claude Opus 5.5 · medium', extra:['fu_board'],
    look:{skin:'#efc29c', hair:'#2b1b14', style:'ponytail', top:'#2f6fd6', skirt:'#2c3445', glasses:true},
    work:['Soi OB và FVG khung 4H','Đo Fib cho lệnh A/B','Quét EQH, EQL khung 1H'],
    talk:['OB 4H phía dưới còn nguyên.','FVG 1H chưa được lấp.','Chờ giá về vùng rồi tính.']},
-  {id:'execution', name:'Hương', role:'Execution Futures', room:'fu', desk:dFu3, model:'Code · miễn phí', extra:['fu_board'],
+  {id:'execution', key:'execution', name:'Hương', role:'Execution', room:'fu', desk:dFu3, model:'Code · miễn phí', extra:['fu_board'],
    look:{skin:'#e9bb94', hair:'#24170f', style:'bob', top:'#4f86e8', skirt:'#2f2f3a'},
    work:['Theo dõi giá so với TP, SL','Khớp giả lập lệnh ảo','Canh lệnh chờ khớp'],
-   talk:['Lệnh chờ chưa khớp.','Đã dời SL lệnh E theo giá.','Không có lệnh nào chạm SL.']},
-  {id:'ban_er', name:'Bảo', role:'Bàn E · Bàn R', room:'fu', desk:dFu4, model:'Code · luật đã backtest', extra:['fu_board'],
+   talk:['Lệnh chờ chưa khớp.','Đã dời SL lệnh E theo giá.','Phí sàn và funding đã trừ vào lời lỗ.']},
+  {id:'pm_e', key:'pm_e', name:'Bảo', role:'Bàn E', room:'fu', desk:dFu4, model:'Code · luật đã backtest', extra:['fu_board'],
    look:{skin:'#f1caa6', hair:'#3a2216', style:'ponytail', top:'#7fa6ee', skirt:'#3b3b46'},
-   work:['Quét tín hiệu OB 1H (Bàn E)','Quét RSI 4H cắt 50 (Bàn R)','Gửi tín hiệu sang Risk'],
-   talk:['Chưa có tín hiệu E mới.','RSI 4H chưa cắt 50.','Tín hiệu nào cũng phải qua Risk.']},
-  {id:'pm_spot', name:'Châu', role:'PM Spot', room:'sp', desk:dSp1, model:'Claude Opus 5.5 (khi Phòng Spot chạy)', extra:['sp_board'],
+   work:['Quét tín hiệu OB 1H (Bàn E)','Đặt lệnh chờ ở mép OB','Gửi tín hiệu sang Risk'],
+   talk:['Chưa có tín hiệu E mới.','Bàn R đã đóng, giờ chỉ còn Bàn E.','Tín hiệu nào cũng phải qua Risk.']},
+  {id:'pm_spot', key:'pm_spot', name:'Châu', role:'PM Spot', room:'sp', desk:dSp1, model:'Claude Sonnet 5.5', extra:['sp_board'],
    look:{skin:'#f4d2b2', hair:'#1b1311', style:'bun', top:'#9c4dcc', skirt:'#2a2433', blazer:true},
-   work:['Xem coin vừa chạm vùng OB chồng','Quyết MUA hay CHỜ khi code báo','Rà sổ chạy thử Phòng Spot'],
+   work:['Xem coin vừa chạm vùng OB chồng','Quyết MUA hay CHỜ khi code báo','Rà sổ Phòng Spot'],
    talk:['Giá chạm vùng mạnh thì mình mới xem.','Mỗi lần mua 20% vốn, không cắt lỗ.','Altcoin chờ BTC chạm vùng trước.']},
-  {id:'sang_loc', name:'Diệp', role:'Sàng lọc · Kỹ thuật Spot', room:'sp', desk:dSp2, model:'Code · miễn phí', extra:['sp_board'],
+  {id:'sang_loc', key:'ky_thuat_spot', name:'Diệp', role:'Kỹ thuật Spot', room:'sp', desk:dSp2, model:'Code · miễn phí', extra:['sp_board'],
    look:{skin:'#efc29c', hair:'#2b1b14', style:'long', top:'#b07ad9', skirt:'#2c3445', glasses:true},
-   work:['Lọc rổ coin đủ thanh khoản','Tính xu hướng khung ngày, tuần','Đo sức mạnh so với BTC'],
-   talk:['Đã bỏ meme và stablecoin khỏi rổ.','Coin dưới EMA200 thì chưa xét.','Đang tính vùng mua khung ngày.']},
-  {id:'quant_spot', name:'Nhi', role:'Quant Spot', room:'sp', desk:dSp3, model:'Code · miễn phí', extra:['sp_board'],
+   work:['Tính vùng OB ngày + tuần chồng nhau','Canh giá mỗi giờ','Báo PM Spot khi giá chạm vùng'],
+   talk:['Đã bỏ meme và stablecoin khỏi rổ.','Vùng mạnh cần ít nhất 2 OB chồng.','Altcoin chờ BTC chạm vùng trước.']},
+  {id:'quant_spot', key:'quant', name:'Nhi', role:'Quant', room:'sp', desk:dSp3, model:'Code · miễn phí', extra:['sp_board'],
    look:{skin:'#e9bb94', hair:'#1c1412', style:'bob', top:'#7b3fb0', skirt:'#3a3a44', glasses:true},
-   work:['Chạy backtest nến ngày nhiều coin','Tính cả coin đã bị gỡ khỏi sàn','So với giữ BTC và rổ top 10'],
+   work:['So kết quả thật với backtest','Tính cả coin đã bị gỡ khỏi sàn','So với giữ BTC'],
    talk:['Backtest có tính phí và trượt giá.','Giai đoạn kiểm tách riêng.','Luật chưa qua kiểm thì không dùng.']},
-  {id:'co_ban', name:'Khánh', role:'Cơ bản', room:'sp', desk:dSp4, model:'Claude Sonnet 5.5 (khi Phòng Spot chạy)', extra:['sp_board'],
+  {id:'performance', key:'performance', name:'Khánh', role:'Performance', room:'gk', desk:dGk4, model:'Code · miễn phí', extra:['gk_board'],
    look:{skin:'#f1caa6', hair:'#4a2c1e', style:'ponytail', top:'#c79be8', skirt:'#2b2f3a'},
-   work:['Đọc nguồn cung lưu hành','Xem lịch mở khóa token','Phân ngành coin'],
-   talk:['Số nào cũng phải có nguồn.','Ngành nào quá 30% thì Risk chặn.','Coin mới niêm yết thì chưa vào Dài hạn.']},
-  {id:'vi_mo', name:'Hà', role:'Vĩ mô', room:'pt', desk:dPt1, model:'Gemini Flash (dự phòng Sonnet 5.5)', extra:['pt_board'],
+   work:['Tính Sharpe từng bàn','Đo sụt giảm Spot và Futures','Chấm điểm agent theo giá thật'],
+   talk:['Sharpe cần ít nhất 5 ngày.','Bàn sụt quá giới hạn thì Risk cho nghỉ.','Chấm điểm theo giá thật, không theo lời.']},
+  {id:'vi_mo', key:'vi_mo', name:'Hà', role:'Vĩ mô', room:'pt', desk:dPt1, model:'Gemini Flash (dự phòng Sonnet 5.5)', extra:['pt_board'],
    look:{skin:'#f4d2b2', hair:'#3b2418', style:'long', top:'#5b6b78', skirt:'#d8d0c2'},
    work:['Đọc lịch kinh tế tuần này','Theo dõi Fear & Greed','Đọc tin Fed'],
    talk:['Tuần này có số liệu CPI Mỹ.','Funding đang ổn.','Nhận định dùng cho cả hai phòng.']},
-  {id:'thanh_khoan', name:'Tâm', role:'Thanh khoản', room:'pt', desk:dPt2, model:'Code · API sàn miễn phí', extra:['pt_board'],
+  {id:'thanh_khoan', key:'thanh_khoan', name:'Tâm', role:'Thanh khoản', room:'pt', desk:dPt2, model:'Code · API sàn miễn phí', extra:['pt_board'],
    look:{skin:'#efc29c', hair:'#1a1210', style:'bun', top:'#7d8b97', skirt:'#2a2f2a'},
    work:['Quét sổ lệnh nhiều sàn','Đo độ sâu ±1% từng coin','Tìm tường lệnh lớn'],
    talk:['Sổ lệnh spot dùng cho Phòng Spot.','Funding, OI dùng cho Phòng Futures.','Tường lệnh có thể bị rút.']},
-  {id:'phan_bien', name:'Linh', role:'Phản biện', room:'td', desk:dPB, model:'Claude Opus 5.5 · medium',
+  {id:'phan_bien', key:'phan_bien', name:'Linh', role:'Phản biện', room:'td', desk:dPB, model:'Claude Sonnet 5.5 · medium',
    look:{skin:'#e9bb94', hair:'#1c1412', style:'bob', top:'#d9822b', skirt:'#3a3a44'},
    work:['Tìm điểm yếu của đề xuất','Dựng kịch bản thua','Chất vấn đề xuất của CIO'],
    talk:['Nếu thủng vùng thì sao?','Backtest có thiếu coin chết không?','Điểm vào này hơi muộn.']},
-  {id:'kiem_duyet', name:'Trang', role:'Kiểm duyệt', room:'td', desk:dKD, model:'Claude Sonnet 5.5 · medium',
+  {id:'kiem_duyet', key:'kiem_duyet', name:'Trang', role:'Kiểm duyệt', room:'td', desk:dKD, model:'Claude Sonnet 5.5 · medium',
    look:{skin:'#f1caa6', hair:'#120d0c', style:'long', top:'#e9a04f', skirt:'#2b2f3a', glasses:true},
    work:['Chấm 7 tiêu chí đề xuất','Đối chiếu số liệu với dữ liệu code','Soát đề xuất của cả hai phòng'],
    talk:['Số liệu khớp dữ liệu code.','Đề xuất thiếu nguồn, trả lại.','Lệnh A cần từ 7 điểm.']},
-  {id:'risk', name:'Vy', role:'Risk', room:'vr', desk:dQR, model:'Code · có quyền chặn', extra:['vr_safe'],
+  {id:'risk', key:'quan_ly_rui_ro', name:'Vy', role:'Risk', room:'vr', desk:dQR, model:'Code · có quyền chặn', extra:['vr_safe'],
    look:{skin:'#f1caa6', hair:'#3a2216', style:'ponytail', top:'#2e9e5b', skirt:'#3b3b46'},
-   work:['Tính khối lượng theo vốn bàn','Kiểm tổng rủi ro mở toàn quỹ','Kiểm tỷ trọng Spot từng coin'],
-   talk:['Tổng rủi ro mở tối đa 3% NAV.','Spot mỗi coin lướt sóng tối đa 5%.','Vượt giới hạn là chặn.']},
-  {id:'compliance', name:'Ngọc', role:'Compliance', room:'vr', desk:dQV, model:'Code · miễn phí', extra:['vr_safe'],
+   work:['Tính khối lượng theo vốn Futures','Kiểm đòn bẩy và tổng rủi ro mở','Kiểm tỷ trọng Spot từng coin'],
+   talk:['Tổng rủi ro futures mở tối đa 1% NAV.','Một coin Spot tối đa 40%, altcoin 20%.','Vượt giới hạn là chặn.']},
+  {id:'compliance', key:'compliance', name:'Ngọc', role:'Compliance', room:'vr', desk:dQV, model:'Code · miễn phí', extra:['vr_safe'],
    look:{skin:'#efc29c', hair:'#1a1210', style:'long', top:'#57b97c', skirt:'#2a2f2a'},
    work:['Kiểm mốc SL/TP có thật','Kiểm luật đã bật','Kiểm trần chi phí AI'],
    talk:['Không có số bịa.','Lệnh đúng luật đã duyệt.','Chi phí AI còn trong trần.']},
-  {id:'van_hanh', name:'Oanh', role:'Vận hành', room:'gk', desk:dTD, model:'Code · miễn phí', extra:['gk_board'],
+  {id:'van_hanh', key:'theo_doi', name:'Oanh', role:'Operations', room:'gk', desk:dTD, model:'Code · miễn phí', extra:['gk_board'],
    look:{skin:'#e9bb94', hair:'#24170f', style:'bun', top:'#b8901a', skirt:'#2f2f3a'},
    work:['Cập nhật bảng lệnh ảo','Gửi bản tin sáng 07:07','Cập nhật app mỗi giờ'],
    talk:['Bản tin sáng đã gửi.','App đã cập nhật.','Đã lưu dữ liệu vào qbk-data.']},
-  {id:'ke_toan', name:'Yến', role:'Kế toán quỹ', room:'gk', desk:dKTo, model:'Code · miễn phí', extra:['gk_board'],
+  {id:'ke_toan', key:'ke_toan', name:'Yến', role:'Kế toán quỹ', room:'gk', desk:dKTo, model:'Code · miễn phí', extra:['gk_board'],
    look:{skin:'#f4d2b2', hair:'#1b1311', style:'bun', top:'#d4ad3a', skirt:'#4a4a55', glasses:true},
-   work:['Chốt NAV','Chấm điểm agent theo giá thật','Tách sổ theo từng phòng'],
-   talk:['NAV đã chốt.','Đã chấm điểm xong tuần này.','Sổ Spot đang để trống.']},
-  {id:'kiem_toan', name:'Phương', role:'Kiểm toán', room:'gk', desk:dGk3, model:'Code · script độc lập', extra:['gk_board'],
+   work:['Chốt NAV','Cộng sổ Spot và Futures','Ghi rót / rút vốn'],
+   talk:['NAV đã chốt.','NAV gồm cả sổ Spot.','Lời lỗ futures đã trừ phí.']},
+  {id:'kiem_toan', key:'kiem_toan', name:'Phương', role:'Kiểm toán', room:'gk', desk:dGk3, model:'Code · script độc lập', extra:['gk_board'],
    look:{skin:'#f1caa6', hair:'#2b1b14', style:'bob', top:'#8a7420', skirt:'#3a3a44'},
    work:['Tự tính lại NAV từ dữ liệu gốc','Đối chiếu với Kế toán','Chuẩn bị kiểm toán ngày 1'],
    talk:['Mình không dùng số của Kế toán.','Đối chiếu khớp.','Ngày 1 kiểm toán tháng.']},
-  {id:'thu_ky', name:'Thảo', role:'Thư ký', room:'hop', desk:dThuKy, model:'Claude Haiku 5.5',
+  {id:'thu_ky', key:'thu_ky', name:'Thảo', role:'Thư ký · NĐT', room:'hop', desk:dThuKy, model:'Code · miễn phí',
    look:{skin:'#f4d2b2', hair:'#4a2c1e', style:'bun', top:'#1f8a8a', skirt:'#efe9de'},
    work:['Soạn biên bản họp','Gửi Telegram cho chủ','Sắp lịch họp'],
    talk:['Đã ghi biên bản phiên trước.','Đã gửi Telegram cho chủ.','Họp chỉ khi chủ gõ /hop.']},
-  {id:'thu_vien', name:'An', role:'Thư viện', room:'tv', desk:dTV, model:'Claude Sonnet 5.5 · medium',
+  {id:'thu_vien', key:'thu_vien', name:'An', role:'Thư viện (Telegram)', room:'tv', desk:dTV, model:'Claude Sonnet 5.5 · medium',
    look:{skin:'#efc29c', hair:'#5a3a22', style:'long', top:'#7a8a2e', skirt:'#e3dccd'},
    work:['Tóm tắt tài liệu chủ gửi','Gắn bài học cho từng agent','Sắp xếp kho kiến thức'],
    talk:['Chủ vừa gửi tài liệu mới.','Bài học mới đã gắn cho Kỹ thuật.','Bài học nào cũng ghi nguồn.']},
 ];
 const BY = {};
+
+/* ---------- DỮ LIỆU THẬT: app cha (index.html, cùng trang) để sẵn window.QBK_DATA ---------- */
+const D = (()=>{ try { return (window.parent && window.parent !== window && window.parent.QBK_DATA) || null; } catch(e){ return null; } })();
+const fmt = (x,d=2) => (x===null||x===undefined) ? '–' : Number(x).toLocaleString('vi-VN',{minimumFractionDigits:d,maximumFractionDigits:d});
+const KEY2ID = {}; STAFF.forEach(d=>{ if (d.key) KEY2ID[d.key]=d.id; });
+Object.assign(KEY2ID, {it_data:'van_hanh', theo_doi:'van_hanh'});
+if (D){
+  (D.nhan_su||[]).forEach(a=>{ const st=STAFF.find(x=>x.key===a.key); if (st){ st.model=a.ai; st.status=a.trang_thai; } });
+  const q=D.quy||{}, n=q.nav||{}, sp=q.spot||{}, fu=n.futures||{};
+  const open=(D.lenh||[]).filter(o=>['CHO_KHOP','DANG_CHAY'].includes(o.ma_trang_thai) && !o.theo_doi);
+  const add=(id, work, talk)=>{ const st=STAFF.find(x=>x.id===id); if (!st) return; if (work&&work.length) st.work=work.concat(st.work.slice(0,1)); if (talk&&talk.length) st.talk=talk; };
+  if (n.nav!==undefined){
+    add('cio', ['Xem NAV '+fmt(n.nav)+' USD','So quỹ ('+fmt(n.lai_pct)+'%) với giữ BTC'], ['NAV '+fmt(n.nav)+', Spot '+fmt(n.spot&&n.spot.gia_tri)+', Futures '+fmt(fu.von)+'.', q.de_xuat_cio?'Đề xuất chia vốn đang chờ chủ duyệt.':'Chưa cần đổi tỷ lệ chia vốn.']);
+    add('ke_toan', ['Chốt NAV '+fmt(n.nav)+' USD','Cộng sổ Spot '+fmt(n.spot&&n.spot.gia_tri)], ['NAV '+fmt(n.nav)+', giá đơn vị '+fmt(n.gia_don_vi,4)+'.','Phí sàn + funding đã trả '+fmt(n.phi_da_tra)+' USD.']);
+    add('risk', ['Kiểm rủi ro mở '+fmt(n.rui_ro_dang_mo)+' USD','Kiểm đòn bẩy '+fmt(fu.don_bay||0)+'×'], ['Rủi ro đang mở '+fmt(n.rui_ro_dang_mo_pct||0)+'% / '+fmt((q.gioi_han||{}).rui_ro_mo_toi_da_pct_nav,1)+'% NAV.', 'Phơi nhiễm ròng '+fmt(n.phoi_nhiem_rong_pct||0,0)+'% NAV.', (q.kiem_soat||[]).filter(c=>c.chan).length+' lần chặn gần đây.']);
+  }
+  if (sp.gia_tri!==undefined || sp.von!==undefined){
+    const pos=(sp.vi_the||[]).map(p=>p.coin+' '+(p.lai_pct>=0?'+':'')+fmt(p.lai_pct,1)+'%');
+    add('pm_spot', pos.length?['Rà vị thế '+pos.join(', ')]:['Chờ giá về vùng, tiền mặt '+fmt(sp.tien_mat,0)+' USD'],
+        [(sp.nhat_ky&&sp.nhat_ky[0])?('Lần trước xem '+sp.nhat_ky[0].coin+': '+(sp.nhat_ky[0].quyet_dinh==='MUA'?'mua':'chờ')+'.'):'Chưa có coin nào chạm vùng.', sp.ngung_mua?'Risk Spot đang cho ngừng mua.':'Mỗi lần mua 20% sổ, không cắt lỗ.']);
+    const zs=Object.keys(sp.vung||{}); add('sang_loc', zs.length?['Canh vùng OB của '+zs.slice(0,5).join(', ')]:null, ['Cửa altcoin '+(sp.cua_btc_mo?'đang mở.':'đang đóng, chờ BTC chạm vùng.')]);
+  }
+  add('execution', open.length?open.slice(0,3).map(o=>'Canh lệnh #'+o.id+' '+o.hang+' '+o.huong+' ('+o.trang_thai.toLowerCase()+')'):null, open.length?[open.length+' lệnh futures đang mở.']:['Không có lệnh futures nào đang mở.']);
+  const lastE=(D.lenh||[]).find(o=>o.hang==='E'); if (lastE) add('pm_e', ['Theo dõi lệnh E #'+lastE.id+' '+lastE.huong], ['Lệnh E gần nhất #'+lastE.id+': '+lastE.trang_thai.toLowerCase()+'.']);
+  const m=(D.cuoc_hop||[])[0]; if (m) add('giam_doc', ['Đọc lại biên bản họp #'+m.id], ['Họp gần nhất '+m.luc+': '+(m.ket_luan.map(k=>'PM '+k.quyet_dinh.toLowerCase()+' '+k.hang).join(', ')||'không có phương án')+'.']);
+  const tk=D.thanh_khoan; if (tk) add('thanh_khoan', ['Quét '+tk.quet_lan_nay+' coin lúc '+tk.luc], ['Đã quét '+tk.so_coin+' coin, '+Object.values(tk.san).filter(v=>String(v).startsWith('ok')).length+' sàn trả dữ liệu.']);
+  const ai=D.chi_phi_ai; if (ai) add('compliance', null, ['Chi phí AI tháng '+fmt(ai.thang,2)+' / '+fmt(ai.tran,0)+' USD.','Không có số bịa thì mới cho qua.']);
+}
 
 /* ---------- routing ---------- */
 function route(a, b, from){
@@ -658,7 +686,7 @@ class Agent{
     const s=ch[1]();
     if (!s){ this.timer=rand(6,12); return; }
     this.go(s, s.label, s.kind==='rest'||s.kind==='chair'?rand(7,11):rand(4,8), me=>{
-      if (s.kind==='drink' && Math.random()<.5) me.say(pick(['Cà phê sáng là phải có!','Hôm nay thị trường im ghê.','Ai uống trà sữa không?']));
+      if (s.kind==='drink' && Math.random()<.5) me.say(pick(['Cà phê sáng là phải có!','Hôm nay thị trường im ghê.','Ai uống trà sữa không?','Pha ấm trà sen cho cả phòng nhé.','Cà phê muối hay bạc xỉu?','Nghỉ 5 phút rồi quay lại canh giá.']));
       if (s.label==='Báo cáo CIO'){ me.say('Em báo cáo nhanh ạ.'); setTimeout(()=>BY.cio.say('Ừ, em nói đi.'),1500/S.speed); log(me,'lên báo cáo CIO'); }
     });
   }
@@ -738,6 +766,29 @@ const MEETS = {
         ['pm_spot','Chạy thử ít nhất 1 tháng rồi báo chủ.'],
         ['thu_ky','Đã ghi biên bản họp Phòng Spot.']]},
 };
+if (D){
+  const m=(D.cuoc_hop||[])[0];
+  if (m){
+    const sc=[['giam_doc','Mở lại cuộc họp #'+m.id+' ('+m.luc+').']];
+    (m.phuong_an||[]).forEach(p=>sc.push(['ky_thuat','Lệnh '+p.hang+' '+p.huong+': Entry '+fmt(p.entry)+', SL '+fmt(p.sl)+', TP '+fmt(p.tp)+'.']));
+    if (!(m.phuong_an||[]).length) sc.push(['ky_thuat','Lần này không có phương án đạt điều kiện.']);
+    sc.push(['vi_mo','Vĩ mô đã gửi nhận định có nguồn, xem biên bản.'], ['kiem_duyet','Đã chấm 7 tiêu chí, đối chiếu số với dữ liệu code.'], ['phan_bien','Đã nêu kịch bản thua trong biên bản.']);
+    (m.ket_luan||[]).forEach(k=>sc.push(['giam_doc','PM '+k.quyet_dinh.toLowerCase()+' lệnh '+k.hang+(k.ly_do?': '+String(k.ly_do).slice(0,80):'')+'.']));
+    sc.push(['risk','Risk tính khối lượng theo vốn Futures, kiểm giới hạn quỹ.'], ['compliance','Compliance kiểm mốc SL/TP có thật.'], ['thu_ky','Đã lưu biên bản, chi phí AI '+fmt(m.chi_phi,3)+' USD.']);
+    MEETS.fu.script=sc; MEETS.fu.name='Bàn AI · họp thật #'+m.id;
+  } else { MEETS.fu.script=[['giam_doc','Chưa có cuộc họp thật nào. Có vùng A/B mới thì chủ gõ /hop.'],['thu_ky','Chưa có biên bản.']]; }
+  const r=((D.quy||{}).spot||{}).nhat_ky||[];
+  const x=r[0];
+  MEETS.sp.seats=[['pm_spot','H'],['sang_loc','L1'],['quant_spot','R1'],['risk','L2'],['compliance','R2']];
+  MEETS.sp.name='Phòng Spot · PM Spot xem vùng (không họp thật)';
+  MEETS.sp.script = x ? [
+    ['sang_loc', x.coin+' chạm vùng '+fmt(x.vung[0])+'–'+fmt(x.vung[1])+' ('+x.so_ob+' OB chồng).'],
+    ['pm_spot', (x.quyet_dinh==='MUA'?'Mua':'Chờ')+': '+String(x.ly_do||'').slice(0,90)],
+    ['risk', 'Mỗi lần mua 20% sổ, kiểm tỷ trọng tối đa.'],
+    ['compliance', x.ai?'Số trong lời PM Spot có trong dữ liệu.':'Theo luật code, không gọi AI.'],
+    ['quant_spot', 'Ghi lại để so với backtest.']]
+    : [['sang_loc','Chưa có coin nào chạm vùng OB chồng.'],['pm_spot','Vậy mình chưa mua gì, giữ tiền mặt.'],['risk','Đúng luật: không có vùng thì không mua.']];
+}
 let MK = 'fu';
 const meetBtn=$('#meetBtn');
 function startMeeting(){
@@ -755,8 +806,8 @@ function endMeeting(){
   for (const [id] of Mt.seats){ const a=BY[id]; a.inMeeting=false; a.go(a.home, 'Làm việc: '+pick(a.d.work), rand(10,22)); }
   BY.thu_ky.inMeeting=false; BY.thu_ky.timer=rand(8,16); BY.thu_ky.activity='Làm việc: Soạn biên bản họp';
   log(BY[Mt.host], 'kết thúc họp, mọi người về phòng');
-  S.meeting=null; S.nextMeeting=rand(100,140); MK = MK==='fu' ? 'sp' : 'fu';
-  meetBtn.disabled=false; meetBtn.textContent='Họp ngay';
+  S.meeting=null; S.nextMeeting=rand(150,220); MK = MK==='fu' ? 'sp' : 'fu';
+  meetBtn.disabled=false; meetBtn.textContent='Xem lại họp';
 }
 function meetingTick(dt){
   const m=S.meeting;
@@ -801,7 +852,7 @@ function select(a){
   a.chip.scrollIntoView({block:'nearest', inline:'center', behavior:'smooth'});
   $('#cAv').textContent=a.d.name[0]; $('#cAv').style.background=a.color;
   $('#cName').textContent=a.d.name; $('#cRole').textContent=a.d.role;
-  $('#cDept').textContent=a.room.name; $('#cModel').textContent=a.d.model; $('#cAct').textContent=a.activity;
+  $('#cDept').textContent=a.room.name+(a.d.status?' · '+a.d.status:''); $('#cModel').textContent=a.d.model; $('#cAct').textContent=a.activity;
   card.hidden=false; ring.material.color.set(a.color); ring.visible=true;
   setFollow(true);
   const p=a.b.g.position.clone(); p.y=1;
@@ -851,6 +902,27 @@ applyTheme();
 matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applyTheme);
 new MutationObserver(applyTheme).observe(document.documentElement, {attributes:true, attributeFilter:['data-theme']});
 
+/* ---------- việc thật: phát lại sự kiện hệ thống (D.su_kien) ---------- */
+const REAL = D ? (D.su_kien||[]).slice(0,16).reverse() : [];
+let realI=0, realT=8;
+if (D){
+  $('#srcTag').textContent='Dữ liệu thật · '+(D.cap_nhat||'');
+  $('#logNote').textContent='Dòng có ● là việc thật hệ thống đã làm (phát lại theo thứ tự). Trà, cà phê, tán gẫu là cho vui.';
+}
+function realTick(dt){
+  if (!REAL.length || S.meeting) return;
+  realT-=dt; if (realT>0) return;
+  realT=rand(16,26);
+  const ev=REAL[realI++ % REAL.length], a=BY[KEY2ID[ev.agent]||'van_hanh'];
+  if (!a || a.inMeeting) return;
+  const board=(a.d.extra||[]).map(k=>SPOTS.extra[k]).find(x=>x && !x.occ);
+  const txt=String(ev.viec).replace(/^[^\wÀ-ỹ#]+/u,'').slice(0,110);
+  const doIt=me=>{ me.say(txt, 4.5); log(me, '<span style="color:var(--accent)">●</span> '+txt+' <span style="color:var(--muted)">('+(ev.luc||'')+')</span>'); };
+  if (board && Math.random()<.5) a.go(board, 'Việc thật: '+txt, rand(7,10), doIt);
+  else if (a.spot!==a.home) a.go(a.home, 'Việc thật: '+txt, rand(10,16), doIt);
+  else { a.activity='Việc thật: '+txt; a.timer=rand(10,16); doIt(a); }
+}
+
 /* ---------- loop ---------- */
 const clockEl=$('#clock'); let lastMin=-1, actT=0;
 const tmp=new V3(); let prev=performance.now();
@@ -861,6 +933,7 @@ function frame(now){
   if (S.clock>=18.5*60) S.clock=8*60;
   const mm=Math.floor(S.clock); if (mm!==lastMin){ lastMin=mm; clockEl.firstChild.nodeValue=hhmm(mm); }
   meetingTick(dt);
+  realTick(dt);
   AGENTS.forEach(a=>a.update(dt));
   if (fly){ fly.k=Math.min(1, fly.k+rdt/1.1); const e=fly.k<.5?2*fly.k*fly.k:1-Math.pow(-2*fly.k+2,2)/2;
     if (S.follow && S.sel){ fly.t1.copy(S.sel.b.g.position).setY(1); }

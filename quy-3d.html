@@ -83,7 +83,7 @@ footer.ui{bottom:0;padding-bottom:calc(12px + env(safe-area-inset-bottom,0px))}
 
 <header class="ui">
   <div class="top">
-    <div class="brand panel"><small>Mô hình 3D · bản demo</small><strong>Quỹ QBK</strong></div>
+    <div class="brand panel"><small id="srcTag">Mô hình 3D · đường đi lệnh</small><strong>Quỹ QBK</strong></div>
     <div class="legend panel">
       <span><i style="background:var(--ai)"></i>AI (tốn phí, chạy khi cần)</span>
       <span><i style="background:var(--code)"></i>Code (miễn phí)</span>
@@ -135,26 +135,26 @@ const ZONES={
 };
 const P=[ // id, tên, khối, loại, chạy bằng, việc, không được, mã nguồn, ô (cột,hàng)
  ['chu','Chủ','top','nguoi','Người · Telegram / app','Rót/rút vốn, gõ /hop, duyệt lệnh và chia vốn, quyết cuối','—','/hop · /phanbo · /rotvon',[-1.2,0]],
- ['cio','CIO','top','ai','Claude Opus 5.5','Đề xuất chia vốn giữa các bàn, họp Hội đồng ngày 1 hằng tháng','Duyệt từng lệnh, tự chia vốn khi chủ chưa duyệt','qbk/cio.py',[1.2,0]],
+ ['cio','CIO','top','ai','Claude Opus 5.5','Đề xuất chia vốn Spot / Futures (đang 80/20), họp Hội đồng ngày 1 hằng tháng','Duyệt từng lệnh, tự chia vốn khi chủ chưa duyệt','qbk/cio.py',[1.2,0]],
  ['pmai','PM Bàn AI','fo','ai','Claude Opus 5.5','Quyết DUYỆT / CHỜ / BỎ lệnh A/B sau cuộc họp','Tự tính khối lượng, tự xin thêm vốn','qbk/agents/meeting.py',[0,0]],
  ['pme','PM Bàn E','fo','code','Code · bộ luật','Luật OB 1H ra tín hiệu, không dùng AI','Đi tắt qua Risk','qbk/runner.py',[1,0]],
- ['pmr','PM Bàn R','fo','code','Code · bộ luật','RSI 4H cắt 50 thuận EMA200 ra tín hiệu','Đi tắt qua Risk','qbk/runner.py',[2,0]],
- ['kt','Analyst Kỹ thuật','fo','ai','Claude Opus 5.5 · high','Đọc SMC (OB, FVG, Fib), đề xuất vùng vào lệnh','Đưa số không có trong dữ liệu code','prompts/ky_thuat.md',[0,1]],
+ ['pms','PM Spot','fo','ai','Claude Sonnet 5.5','Giá chạm vùng OB chồng thì xem 1 lần, quyết MUA / CHỜ (80% vốn quỹ)','Cắt lỗ, mua quá 20% sổ mỗi lần','qbk/spot.py',[2,0]],
+ ['kt','Analyst Kỹ thuật','fo','ai','Claude Opus 5.5 · medium','Đọc SMC (OB, FVG, Fib), đề xuất vùng vào lệnh','Đưa số không có trong dữ liệu code','prompts/ky_thuat.md',[0,1]],
  ['vm','Analyst Vĩ mô','fo','ai','Gemini Flash (dự phòng Sonnet)','Thiên hướng thị trường, lịch kinh tế, tin có nguồn','Đưa tin không nguồn','prompts/vi_mo.md',[1,1]],
  ['liq','Analyst Thanh khoản','fo','code','Code · API sàn miễn phí','Sổ lệnh nhiều sàn, độ sâu, tường lệnh, funding, OI','Biến tường lệnh thành luật vào lệnh','qbk/liquidity/',[2,1]],
  ['quant','Quant','fo','code','Code','Backtest, so kết quả thật với backtest, báo bàn chạy lệch','Mở bàn mới khi chưa qua chạy thử','qbk/cio.py:quant_check',[0,2]],
- ['exe','Execution','fo','code','Code','Khớp giả lập, tính phí và trượt giá','Đổi giá vào lệnh','qbk/tracker.py',[1,2]],
- ['risk','Risk','mo','code','Code','Tính khối lượng, giới hạn toàn quỹ, có quyền CHẶN mọi lệnh','Quyết mua/bán','qbk/fund.py:gate',[0,0]],
+ ['exe','Execution','fo','code','Code','Khớp giả lập, trừ phí sàn (maker / taker) và funding','Đổi giá vào lệnh','qbk/tracker.py',[1,2]],
+ ['risk','Risk','mo','code','Code','Khối lượng, đòn bẩy ≤ 5×, rủi ro mở ≤ 1% NAV, tỷ trọng Spot; có quyền CHẶN mọi lệnh','Quyết mua/bán','qbk/fund.py:gate',[0,0]],
  ['kd','Kiểm duyệt','mo','ai','Claude Sonnet 5.5','Chấm 7 tiêu chí cho lệnh A/B','Chấm lệnh của chính mình','prompts/kiem_duyet.md',[1,0]],
- ['pb','Phản biện','mo','ai','Claude Opus 5.5','Dựng kịch bản thua, chất vấn CIO. Chỉ góp ý','Chặn lệnh','prompts/phan_bien.md',[2,0]],
+ ['pb','Phản biện','mo','ai','Claude Sonnet 5.5','Dựng kịch bản thua, chất vấn CIO. Chỉ góp ý','Chặn lệnh','prompts/phan_bien.md',[2,0]],
  ['comp','Compliance','mo','code','Code','Chống bịa: mốc SL/TP có thật, đúng luật đã bật, trần chi phí','Bỏ qua lệnh của bàn tự động','qbk/fund.py:compliance',[0,1]],
  ['perf','Performance','mo','code','Code','Sharpe, sụt giảm, winrate từng bàn, chấm điểm agent','Bị chấm bởi chính người được chấm','qbk/scoring.py',[1,1]],
  ['ops','Operations','bo','code','Code','Theo dõi khớp, TP, SL của lệnh ảo','Sửa lệnh đã ghi','qbk/tracker.py',[0,0]],
  ['acct','Kế toán quỹ','bo','code','Code','NAV hằng ngày, đơn vị quỹ, rót/rút','Tự đối chiếu NAV của mình','qbk/fund.py · accounting.py',[1,0]],
  ['it','IT / Data','bo','code','Code · GitHub Actions','Lấy giá Binance → OKX, chạy mỗi giờ phút 7','—','qbk/data/',[2,0]],
  ['ir','Quan hệ NĐT','bo','code','Code','Bản tin sáng, báo cáo tháng, app, Telegram','—','qbk/brief.py · notifier.py',[0,1]],
- ['tk','Thư ký','bo','ai','Claude Haiku 5.5','Soạn biên bản họp, gửi kèm chart','Thêm ý kiến riêng vào biên bản','qbk/agents/meeting.py',[1,1]],
- ['tv','Thư viện','bo','ai','Claude Sonnet 5.5','Tóm tắt tài liệu chủ gửi thành bài học, gắn cho agent','Gắn bài học chưa có nguồn','qbk/knowledge.py',[2,1]],
+ ['tk','Thư ký','bo','code','Code','Soạn biên bản họp từ dữ liệu cuộc họp, gửi kèm chart','Thêm ý kiến riêng vào biên bản','qbk/agents/meeting.py',[1,1]],
+ ['tv','Thư viện','bo','ai','Claude Sonnet 5.5','Chủ dạy qua Telegram (/hoc): tóm tắt thành bài học cho agent','Gắn bài học chưa có nguồn','qbk/knowledge.py',[2,1]],
  ['audit','Kiểm toán','out','code','Code · script độc lập','Tự tính lại lời/lỗ và NAV mỗi tháng từ dữ liệu gốc','Dùng số của Kế toán','qbk/audit.py',[0,0]],
 ];
 const BY={};
@@ -173,22 +173,32 @@ const SC={
   ['ops','Operations ghi lệnh ảo, theo dõi TP/SL.'],
   ['tk','Thư ký soạn biên bản, gửi kèm chart.'],
   ['chu','Chủ nhận Telegram.'] ]},
- er:{name:'Lệnh Bàn E/R', title:'Bàn E · Bàn R tự động (không AI)', steps:[
-  [['pme','pmr'],'Luật code ra tín hiệu. E: OB 1H đạt điều kiện. R: RSI 4H cắt 50.'],
+ er:{name:'Lệnh Bàn E', title:'Bàn E tự động (không AI)', steps:[
+  ['pme','Luật code ra tín hiệu: OB 1H đạt điều kiện, lệnh chờ ở mép OB.'],
   ['risk','Risk dùng chung luật với Bàn AI → CHO QUA','pass'],
   ['comp','Compliance: đúng luật đã bật, không vượt vốn bàn → CHO QUA','pass'],
   ['exe','Execution khớp giả lập.'],
   ['ops','Operations dời SL theo giá, theo dõi khớp/đóng.'],
   ['ir','Báo Telegram khi khớp hoặc đóng.'] ]},
+ spot:{name:'Lệnh Spot', title:'Phòng Spot (80% vốn quỹ)', steps:[
+  ['it','Code tính vùng OB ngày + tuần chồng nhau, canh giá mỗi giờ (0$).'],
+  ['liq','Analyst Thanh khoản đo độ sâu sổ lệnh spot.'],
+  ['pms','Giá chạm vùng: PM Spot (AI) xem 1 lần, quyết MUA / CHỜ. Altcoin chỉ khi BTC vừa chạm vùng.'],
+  ['risk','Risk: mỗi lần 20% sổ, một coin ≤ 40% (altcoin ≤ 20%), sổ sụt 30% thì ngừng mua → CHO QUA','pass'],
+  ['comp','Compliance: số PM Spot nêu phải có trong dữ liệu → CHO QUA','pass'],
+  ['exe','Execution khớp giả lập, phí 0,1%.'],
+  ['acct','Kế toán cộng sổ Spot vào NAV.'],
+  ['chu','Chủ nhận Telegram.'] ]},
  block:{name:'Risk chặn', title:'Ví dụ: Risk chặn lệnh của PM', steps:[
   ['pmai','PM Bàn AI DUYỆT lệnh A SHORT.'],
-  ['risk','Tổng rủi ro mở sẽ thành 3,6% > 3% → CHẶN, ghi lý do.','block'],
+  ['risk','Tổng rủi ro mở sẽ thành 1,2% > 1% NAV → CHẶN, ghi lý do.','block'],
   ['ir','Báo chủ: PM duyệt nhưng Risk chặn vì vượt giới hạn quỹ.'],
-  ['perf','Lệnh vẫn được theo dõi ngầm để chấm điểm PM.'] ], note:'Số 3,6% là ví dụ minh họa, không phải dữ liệu thật.'},
+  ['perf','Lệnh vẫn được theo dõi ngầm để chấm điểm PM.'] ], note:'Số 1,2% là ví dụ minh họa.'},
  hour:{name:'Mỗi giờ', title:'Mỗi giờ, phút 7 (0$, chỉ code)', steps:[
   ['it','IT/Data lấy giá mới nhất.'],
   ['liq','Analyst Thanh khoản quét sổ lệnh nhiều sàn, tối đa 90 giây.'],
-  [['pme','pmr'],'Bàn E, R quét tín hiệu.'],
+  ['pme','Bàn E quét tín hiệu.'],
+  ['pms','Phòng Spot canh vùng OB chồng.'],
   ['ops','Operations kiểm tra khớp, TP, SL.'],
   ['risk','Risk kiểm giới hạn toàn quỹ.'],
   ['chu','Có vùng A/B mới thì báo chủ.'] ]},
@@ -363,6 +373,16 @@ function tickRun(dt){
 
 /* ---------- UI ---------- */
 const scen=$('#scen');
+const D=(()=>{ try { return (parent!==window && parent.QBK_DATA) || null; } catch(e){ return null; } })();
+if (D){
+  const c=((D.quy||{}).kiem_soat||[]).find(x=>x.chan);
+  if (c) SC.block={name:'Risk chặn (thật)', title:'Lần chặn gần nhất · '+c.luc, steps:[
+    [c.ban==='AI'?'pmai':'pme', (c.ban==='AI'?'PM Bàn AI':'Bàn '+c.ban)+' gửi lệnh '+(c.huong||'')+'.'],
+    [c.bo_phan==='Risk'?'risk':'comp', String(c.ly_do[0]||'vượt giới hạn').slice(0,110)+' → CHẶN','block'],
+    ['ir','Báo chủ qua Telegram.']]};
+  else SC.block.note='Chưa có lần chặn thật nào; đây là ví dụ minh họa.';
+  const t=document.getElementById('srcTag'); if (t) t.textContent='Dữ liệu thật · '+(D.cap_nhat||'');
+}
 for(const k in SC){ const b=document.createElement('button'); b.type='button'; b.className='chip'; b.dataset.k=k; b.textContent=SC[k].name; b.addEventListener('click',()=>{R.paused=false; $('#pBtn').textContent='Tạm dừng'; setScenario(k);}); scen.appendChild(b); }
 $('#pBtn').addEventListener('click',e=>{R.paused=!R.paused; e.currentTarget.textContent=R.paused?'Chạy tiếp':'Tạm dừng';});
 $('#nBtn').addEventListener('click',e=>{const on=e.currentTarget.getAttribute('aria-pressed')!=='true'; e.currentTarget.setAttribute('aria-pressed',String(on)); document.body.classList.toggle('hide-names',!on);});
