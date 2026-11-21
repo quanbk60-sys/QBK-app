@@ -1,0 +1,961 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Văn phòng QBK 3D</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+/* Layout: full-screen 3D scene, thin glass panels floating at the edges (header, log, roster) */
+:root{
+  --bg:#dfe6ec; --panel:rgba(255,255,255,.86); --fg:#1b2430; --muted:#5b6876;
+  --line:rgba(27,36,48,.12); --btn:rgba(255,255,255,.9); --accent:#1f8a8a; --on-accent:#fff;
+  --bubble:#ffffff; --bubble-fg:#1b2430;
+  --f-body:'Be Vietnam Pro',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --f-mono:'JetBrains Mono',ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#131a22; --panel:rgba(22,28,37,.86); --fg:#e6ecf2; --muted:#93a1b0;
+  --line:rgba(230,236,242,.13); --btn:rgba(34,42,54,.92); --accent:#3fb6b0; --on-accent:#0d1418;
+  --bubble:#f3f6f9; --bubble-fg:#17202a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#131a22; --panel:rgba(22,28,37,.86); --fg:#e6ecf2; --muted:#93a1b0;
+  --line:rgba(230,236,242,.13); --btn:rgba(34,42,54,.92); --accent:#3fb6b0; --on-accent:#0d1418;
+  --bubble:#f3f6f9; --bubble-fg:#17202a; color-scheme:dark}
+[hidden]{display:none!important}
+html,body{height:100%;overflow:hidden}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);-webkit-font-smoothing:antialiased}
+#stage{position:fixed;inset:0}
+#stage canvas{display:block;touch-action:none;outline:none}
+#tags{position:fixed;inset:0;pointer-events:none;overflow:hidden}
+.tag{position:absolute;left:0;top:0;display:flex;flex-direction:column;align-items:center;gap:4px;will-change:transform}
+.tag .nm{font-size:11px;font-weight:600;padding:2px 7px 2px 5px;border-radius:999px;background:var(--panel);border:1px solid var(--line);white-space:nowrap;display:flex;align-items:center;gap:5px;color:var(--fg)}
+.tag .nm i{width:7px;height:7px;border-radius:50%;display:block}
+.tag .nm span{color:var(--muted);font-weight:500}
+.tag.sel .nm{outline:2px solid var(--accent)}
+.hide-names .tag:not(.sel) .nm{display:none}
+.bubble{max-width:190px;font-size:12px;line-height:1.35;padding:6px 9px;border-radius:10px;background:var(--bubble);color:var(--bubble-fg);box-shadow:0 4px 14px rgba(0,0,0,.18);position:relative;text-align:center;text-wrap:balance}
+.bubble::after{content:"";position:absolute;left:50%;bottom:-5px;width:10px;height:10px;background:var(--bubble);transform:translateX(-50%) rotate(45deg);border-radius:2px}
+.ui{position:fixed;left:0;right:0;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));pointer-events:none}
+.ui>*{pointer-events:auto}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);box-shadow:0 6px 24px rgba(15,25,35,.10)}
+header.ui{top:0;padding-top:calc(12px + env(safe-area-inset-top,0px));display:flex;gap:10px;align-items:flex-start;justify-content:space-between;flex-wrap:wrap}
+.brand{padding:9px 14px;display:flex;align-items:center;gap:14px}
+.brand small{display:block;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.brand b{font-size:16px;font-weight:700;letter-spacing:-.01em}
+.clock{font-family:var(--f-mono);font-size:15px;font-variant-numeric:tabular-nums;padding-left:14px;border-left:1px solid var(--line)}
+.clock em{display:block;font-style:normal;font-family:var(--f-body);font-size:10.5px;color:var(--muted);letter-spacing:.04em}
+.tools{display:flex;gap:6px;flex-wrap:wrap;padding:6px}
+button{font:inherit;color:inherit}
+.btn{height:34px;padding:0 12px;border-radius:9px;border:1px solid var(--line);background:var(--btn);font-size:13px;font-weight:500;cursor:pointer;white-space:nowrap}
+.btn:hover{border-color:var(--accent)}
+.btn:focus-visible,.chip:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.btn.primary{background:var(--accent);color:var(--on-accent);border-color:transparent;font-weight:600}
+.btn[disabled]{opacity:.55;cursor:default}
+.btn[aria-pressed="true"]{border-color:var(--accent);color:var(--accent)}
+#log{position:fixed;right:max(16px,env(safe-area-inset-right,0px));top:calc(78px + env(safe-area-inset-top,0px));width:290px;padding:12px 14px;max-height:46vh;display:flex;flex-direction:column;gap:8px}
+#log h2{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0;font-weight:600}
+#log ul{list-style:none;margin:0;padding:0;overflow-y:auto;display:flex;flex-direction:column;gap:6px;font-size:12.5px;line-height:1.4;min-height:0}
+#log li{display:grid;grid-template-columns:42px 1fr;gap:6px}
+#log time{font-family:var(--f-mono);font-size:11px;color:var(--muted);padding-top:1px;font-variant-numeric:tabular-nums}
+#log p{margin:0;font-size:11px;color:var(--muted);border-top:1px solid var(--line);padding-top:8px}
+footer.ui{bottom:0;padding-bottom:calc(12px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:8px;align-items:flex-start}
+#card{padding:12px 14px;width:min(360px,100%);display:grid;grid-template-columns:44px 1fr;gap:4px 12px;align-items:center}
+#card .av{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;color:#fff;font-weight:700;font-size:18px;grid-row:span 2}
+#card h3{margin:0;font-size:16px;font-weight:700}
+#card .role{font-size:12.5px;color:var(--muted)}
+#card dl{grid-column:1 / -1;margin:8px 0 0;display:grid;grid-template-columns:auto 1fr;gap:4px 12px;font-size:12.5px}
+#card dt{color:var(--muted)}
+#card dd{margin:0;min-width:0}
+#card dd.mono{font-family:var(--f-mono);font-size:11.5px}
+#card .act{grid-column:1 / -1;display:flex;gap:6px;margin-top:8px}
+#roster{display:flex;gap:6px;overflow-x:auto;max-width:100%;padding:6px;scrollbar-width:none}
+#roster::-webkit-scrollbar{display:none}
+.chip{display:flex;align-items:center;gap:6px;height:32px;padding:0 11px 0 9px;border-radius:999px;border:1px solid var(--line);background:var(--btn);font-size:12.5px;cursor:pointer;white-space:nowrap;flex:none}
+.chip i{width:9px;height:9px;border-radius:50%}
+.chip span{color:var(--muted)}
+.chip[aria-pressed="true"]{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+.hint{font-size:11.5px;color:var(--muted);padding:0 4px}
+@media (max-width:760px){
+  .brand{gap:10px;padding:8px 12px}
+  .brand b{font-size:14px}
+  #log{left:max(16px,env(safe-area-inset-left,0px));width:auto;top:auto;bottom:calc(116px + env(safe-area-inset-bottom,0px));max-height:34vh}
+  .hint{display:none}
+}
+</style>
+
+<div id="stage"></div>
+<div id="tags"></div>
+
+<header class="ui">
+  <div class="brand panel">
+    <div><small id="srcTag">Văn phòng 3D · bản demo</small><b>Quỹ QBK</b></div>
+    <div class="clock" id="clock">08:30<em>Giờ mô phỏng</em></div>
+  </div>
+  <div class="tools panel">
+    <button class="btn primary" id="meetBtn" type="button">Xem lại họp</button>
+    <button class="btn" id="speedBtn" type="button" aria-label="Tốc độ mô phỏng">Tốc độ 1×</button>
+    <button class="btn" id="namesBtn" type="button" aria-pressed="true">Hiện tên</button>
+    <button class="btn" id="logBtn" type="button" aria-pressed="true">Nhật ký</button>
+    <button class="btn" id="overBtn" type="button">Toàn cảnh</button>
+  </div>
+</header>
+
+<aside id="log" class="panel" aria-label="Nhật ký văn phòng">
+  <h2>Nhật ký văn phòng</h2>
+  <ul id="logList"></ul>
+  <p id="logNote">Bản demo giao diện. Lời thoại và số liệu là minh họa, chưa nối dữ liệu thật của hệ thống.</p>
+</aside>
+
+<footer class="ui">
+  <section id="card" class="panel" hidden aria-live="polite">
+    <div class="av" id="cAv">L</div>
+    <h3 id="cName">Lan</h3>
+    <div class="role" id="cRole">Giám đốc</div>
+    <dl>
+      <dt>Phòng</dt><dd id="cDept"></dd>
+      <dt>Mô hình AI</dt><dd class="mono" id="cModel"></dd>
+      <dt>Đang làm</dt><dd id="cAct"></dd>
+    </dl>
+    <div class="act">
+      <button class="btn" id="followBtn" type="button" aria-pressed="true">Đang theo dõi</button>
+      <button class="btn" id="closeBtn" type="button">Đóng</button>
+    </div>
+  </section>
+  <nav id="roster" class="panel" aria-label="Nhân viên"></nav>
+  <div class="hint">Kéo để xoay · cuộn hoặc chụm hai ngón để phóng to · chạm vào một nhân viên để xem chi tiết</div>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script>
+(function(){
+const V3 = THREE.Vector3;
+const $ = s => document.querySelector(s);
+const rand = (a,b) => a + Math.random()*(b-a);
+const pick = arr => arr[Math.floor(Math.random()*arr.length)];
+const S = { speed:1, names:true, sel:null, follow:false, clock:8*60+30, meeting:null, nextMeeting:28 };
+
+/* ---------- renderer / camera ---------- */
+const stage = $('#stage');
+const renderer = new THREE.WebGLRenderer({antialias:true});
+renderer.setPixelRatio(Math.min(window.devicePixelRatio||1, 2));
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+stage.appendChild(renderer.domElement);
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(42, 1, 0.1, 400);
+const controls = new THREE.OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true; controls.dampingFactor = 0.08;
+controls.maxPolarAngle = 1.36; controls.minDistance = 4; controls.maxDistance = 110;
+controls.screenSpacePanning = false;
+const OVER = { pos:new V3(0,36,32), tgt:new V3(0,0,1) };
+function overview(){
+  const a = innerWidth/innerHeight;
+  if (a < 0.8) { OVER.pos.set(50, 78, 7); OVER.tgt.set(0,0,0); }       // portrait: look along the building
+  else if (a < 1.3) { OVER.pos.set(0, 56, 48); OVER.tgt.set(0,0,1); }
+  else { OVER.pos.set(0, 40, 37); OVER.tgt.set(0,0,1.5); }
+}
+function resize(){
+  renderer.setSize(innerWidth, innerHeight);
+  camera.aspect = innerWidth/innerHeight; camera.updateProjectionMatrix();
+  overview();
+}
+resize();
+camera.position.copy(OVER.pos); controls.target.copy(OVER.tgt);
+addEventListener('resize', resize);
+
+/* ---------- lights ---------- */
+const hemi = new THREE.HemisphereLight(0xffffff, 0xaab4c0, 0.75); scene.add(hemi);
+const sun = new THREE.DirectionalLight(0xfff4e6, 0.75);
+sun.position.set(18, 34, 16); sun.castShadow = true;
+sun.shadow.mapSize.set(2048, 2048);
+Object.assign(sun.shadow.camera, {left:-34,right:34,top:24,bottom:-24,near:1,far:110});
+sun.shadow.bias = -0.0004; sun.shadow.normalBias = 0.02;
+scene.add(sun);
+
+/* ---------- helpers ---------- */
+const MC = {};
+function M(c, o){ const k = c + (o?JSON.stringify(o):''); return MC[k] || (MC[k] = new THREE.MeshStandardMaterial(Object.assign({color:c, roughness:.78, metalness:0}, o||{}))); }
+function add(parent, geo, mat, x, y, z, cast){
+  const m = new THREE.Mesh(geo, mat); m.position.set(x||0, y||0, z||0);
+  m.castShadow = cast !== false; m.receiveShadow = true; parent.add(m); return m;
+}
+const B = (w,h,d) => new THREE.BoxGeometry(w,h,d);
+const C = (rt,rb,h,s) => new THREE.CylinderGeometry(rt,rb,h,s||14);
+const Sp = (r,a,b) => new THREE.SphereGeometry(r,a||16,b||12);
+function mix(a, b, t){ const A=new THREE.Color(a), Bc=new THREE.Color(b); return '#'+A.lerp(Bc,t).getHexString(); }
+function mulberry(s){ return function(){ s|=0; s=s+0x6D2B79F5|0; let t=Math.imul(s^s>>>15,1|s); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; }
+
+/* ---------- rooms ---------- */
+const ROOMS = {
+  gd:{name:'Ban Giám đốc',        x0:-25, s:-1, color:'#a23b5a'},
+  hop:{name:'Phòng họp',          x0:-15, s:-1, color:'#1f8a8a'},
+  fu:{name:'Phòng Futures',       x0:-5,  s:-1, color:'#2f6fd6'},
+  sp:{name:'Phòng Spot',          x0:5,   s:-1, color:'#9c4dcc'},
+  tv:{name:'Thư viện',            x0:15,  s:-1, color:'#7a8a2e'},
+  td:{name:'Phòng Thẩm định',     x0:-25, s:1,  color:'#d9822b'},
+  vr:{name:'Rủi ro & Tuân thủ',   x0:-15, s:1,  color:'#2e9e5b'},
+  gk:{name:'Kế toán & Vận hành',  x0:-5,  s:1,  color:'#b8901a'},
+  pt:{name:'Phân tích chung',     x0:5,   s:1,  color:'#5b6b78'},
+  pc:{name:'Pantry',              x0:15,  s:1,  color:'#e06c5a'},
+};
+for (const k in ROOMS){ const r=ROOMS[k]; r.key=k; r.cx=r.x0+5; }
+// room-local coords: u = across (-5..5), v = depth from corridor wall (0..11)
+const W = (r,u,v) => new V3(r.cx+u, 0, r.s*(2+v));
+const head = (r,du,dv) => Math.atan2(du, r.s*dv);
+
+/* ---------- floor & ground ---------- */
+const FLOOR = '#e8e3db';
+const ground = add(scene, new THREE.PlaneGeometry(260,260), M('#c5cfbc'), 0, -0.42, 0, false);
+ground.rotation.x = -Math.PI/2;
+add(scene, B(51,0.42,27), M('#cbc4b8'), 0, -0.21, 0, false);
+add(scene, B(50,0.02,4), M('#d6d1c8'), 0, 0.01, 0, false);
+add(scene, B(46,0.01,1.3), M('#b9c2c9'), 0, 0.025, 0, false);   // corridor runner
+for (const k in ROOMS){ const r=ROOMS[k]; add(scene, B(10,0.02,11), M(mix(FLOOR, r.color, .13)), r.cx, 0.01, r.s*7.5, false); }
+
+/* ---------- walls ---------- */
+const wallM = M('#f4f1eb'), railM = M('#59636e');
+const glassM = new THREE.MeshStandardMaterial({color:'#bcd6e6', transparent:true, opacity:.16, roughness:.1, metalness:.1, depthWrite:false});
+function wall(x1,z1,x2,z2){
+  const dx=x2-x1, dz=z2-z1, L=Math.hypot(dx,dz); if (L<0.05) return;
+  const g = new THREE.Group(); g.position.set((x1+x2)/2, 0, (z1+z2)/2); g.rotation.y = Math.atan2(-dz, dx);
+  add(g, B(L+0.14,1.0,0.14), wallM, 0, 0.5, 0);
+  add(g, B(L,1.45,0.04), glassM, 0, 1.725, 0, false);
+  add(g, B(L+0.14,0.06,0.12), railM, 0, 2.48, 0, false);
+  scene.add(g);
+}
+wall(-25,-13,25,-13); wall(-25,13,25,13); wall(-25,-13,-25,13);
+wall(25,-13,25,-2); wall(25,2,25,13);
+for (const x of [-15,-5,5,15]){ wall(x,-13,x,-2); wall(x,2,x,13); }
+for (const k in ROOMS){ const r=ROOMS[k], z=r.s*2; wall(r.x0,z,r.cx-0.9,z); wall(r.cx+0.9,z,r.x0+10,z); }
+
+/* ---------- textures ---------- */
+function chartTex(w, h, seed, title, zone){
+  const c=document.createElement('canvas'); c.width=w; c.height=h; const x=c.getContext('2d');
+  x.fillStyle='#0f1720'; x.fillRect(0,0,w,h);
+  x.strokeStyle='rgba(255,255,255,.06)'; x.lineWidth=1;
+  for (let i=1;i<6;i++){ x.beginPath(); x.moveTo(0,h*i/6); x.lineTo(w,h*i/6); x.stroke(); }
+  const R=mulberry(seed); const n=Math.max(16, Math.floor(w/11)); let p=.5; const top=title?.2:.08, bot=.06;
+  const Y=v=>h*top + (1-v)*(h*(1-top-bot));
+  if (zone){ x.fillStyle='rgba(66,133,244,.25)'; x.fillRect(w*.45, Y(.36), w*.55, Y(.28)-Y(.36)); x.fillStyle='rgba(239,83,80,.18)'; x.fillRect(w*.6, Y(.86), w*.4, Y(.8)-Y(.86)); }
+  const cw=(w-12)/n;
+  for (let i=0;i<n;i++){
+    const o=p; p=Math.min(.86,Math.max(.14,p+(R()-.48)*.09)); const hi=Math.max(o,p)+R()*.035, lo=Math.min(o,p)-R()*.035;
+    const up=p>=o; x.strokeStyle=x.fillStyle=up?'#26a69a':'#ef5350';
+    const cx=6+i*cw+cw/2; x.beginPath(); x.moveTo(cx,Y(hi)); x.lineTo(cx,Y(lo)); x.stroke();
+    x.fillRect(cx-cw*.32, Y(Math.max(o,p)), cw*.64, Math.max(1.5, Math.abs(Y(o)-Y(p))));
+  }
+  if (title){ x.fillStyle='#d7dfe8'; x.font='600 '+Math.round(h*.09)+'px "JetBrains Mono", monospace'; x.fillText(title, 12, h*.13); }
+  const t=new THREE.CanvasTexture(c); t.anisotropy=4; return t;
+}
+function boardTex(){
+  const w=512,h=256,c=document.createElement('canvas'); c.width=w; c.height=h; const x=c.getContext('2d');
+  x.fillStyle='#0f1720'; x.fillRect(0,0,w,h);
+  x.fillStyle='#d7dfe8'; x.font='600 22px "JetBrains Mono", monospace'; x.fillText('LỆNH ẢO ĐANG MỞ', 16, 34);
+  const rows=[['A12','Long','96.250','Khớp','#26a69a'],['B07','Short','99.800','Chờ','#e0b341'],['C03','Long','94.900','Chờ','#e0b341'],['A11','Long','95.100','TP1','#26a69a']];
+  x.font='500 19px "JetBrains Mono", monospace';
+  rows.forEach((r,i)=>{ const y=78+i*42; x.fillStyle='#93a1b0'; x.fillText(r[0],16,y); x.fillStyle=r[1]==='Long'?'#26a69a':'#ef5350'; x.fillText(r[1],90,y); x.fillStyle='#d7dfe8'; x.fillText(r[2],190,y); x.fillStyle=r[4]; x.fillText(r[3],330,y); });
+  return new THREE.CanvasTexture(c);
+}
+const monTex = [1,2,3,4,5,6].map(s => chartTex(256,150,s*97));
+let monI = 0;
+
+/* ---------- furniture ---------- */
+function chair(g, x, z, col){
+  const cm = M(col||'#3a424c'), mm = M('#8d959e');
+  add(g, B(0.5,0.07,0.48), cm, x, 0.46, z);
+  add(g, B(0.5,0.56,0.07), cm, x, 0.78, z-0.27);
+  add(g, C(0.03,0.03,0.4,8), mm, x, 0.23, z);
+  add(g, C(0.24,0.24,0.03,10), mm, x, 0.03, z);
+}
+function group(r,u,v,du,dv){ const g=new THREE.Group(); g.position.copy(W(r,u,v)); g.rotation.y=head(r,du,dv); scene.add(g); return g; }
+function mkSpot(r,u,v,du,dv,pose,via,kind,label){ return {room:r, pos:W(r,u,v), h:head(r,du,dv), pose, via:via||[], kind:kind||'', label:label||'', occ:null}; }
+const SPOTS = {coffee:[], chat:[], sofa:[], printer:[], shelf:[], visitor:[], seats:{}, extra:{}};
+
+function desk(r,u,v,du,dv,o){
+  o=o||{};
+  const g=group(r,u,v,du,dv);
+  const big=!!o.big, tw=big?2.2:1.4, td=big?1.0:0.7, dz=big?0.86:0.72;
+  add(g, B(tw,0.05,td), M(big?'#6e4c37':'#d9ccb9'), 0, 0.74, dz);
+  for (const sx of [-1,1]) for (const sz of [-1,1]) add(g, B(0.05,0.72,0.05), M('#5a626c'), sx*(tw/2-0.06), 0.36, dz+sz*(td/2-0.06));
+  const nm=o.mon||1;
+  for (let i=0;i<nm;i++){
+    const mx=(i-(nm-1)/2)*0.58, my=dz+(big?0.25:0.2);
+    add(g, B(0.05,0.2,0.05), M('#2a3038'), mx, 0.86, my+0.03);
+    add(g, B(0.56,0.34,0.03), M('#1d232b'), mx, 1.1, my);
+    const scr=new THREE.Mesh(new THREE.PlaneGeometry(0.52,0.3), new THREE.MeshBasicMaterial({map:monTex[monI++%monTex.length]}));
+    scr.position.set(mx,1.1,my-0.017); scr.rotation.y=Math.PI; g.add(scr);
+  }
+  add(g, B(0.42,0.02,0.14), M('#3a4049'), 0, 0.775, dz-0.14);
+  add(g, C(0.035,0.032,0.09,10), M(r.color), tw/2-0.22, 0.81, dz-0.12);
+  add(g, B(0.24,0.012,0.32), M('#fbfbf8'), -tw/2+0.25, 0.772, dz-0.05);
+  if (!o.noChair) chair(g, 0, 0, o.chair);
+  g.updateMatrixWorld();
+  const sp = mkSpot(r,u,v,du,dv,'sit',[[0,v]],'desk');
+  const vp = g.localToWorld(new V3(0,0,-0.95));
+  sp.visit = {room:r, pos:new V3(vp.x,0,vp.z), h:sp.h, pose:'stand', via:[[0,v]], kind:'visit', occ:null};
+  return sp;
+}
+function chairSpot(r,u,v,du,dv,via,col,label){ const g=group(r,u,v,du,dv); chair(g,0,0,col); return mkSpot(r,u,v,du,dv,'sit',via,'chair',label); }
+function plant(x,z,s){
+  s=s||1; const g=new THREE.Group(); g.position.set(x,0,z); scene.add(g);
+  add(g, C(0.2*s,0.16*s,0.4*s,12), M('#d8d2c6'), 0, 0.2*s, 0);
+  const f=add(g, new THREE.IcosahedronGeometry(0.42*s,0), M('#4f8a4a',{flatShading:true}), 0, 0.75*s, 0); f.scale.y=1.3;
+  add(g, new THREE.IcosahedronGeometry(0.28*s,0), M('#5f9e55',{flatShading:true}), 0.14*s, 1.12*s, 0.05);
+}
+function shelf(r,u,v,len,du,dv){
+  const g=group(r,u,v,du,dv), R=mulberry(Math.floor((u+20)*31+v*7));
+  add(g, B(len,2.0,0.42), M('#8a6a4f'), 0, 1.0, 0);
+  const cols=['#a23b5a','#2f6fd6','#d9822b','#2e9e5b','#e0c27a','#6b5b95','#f1ece2','#31414f'];
+  for (let k=0;k<4;k++){
+    add(g, B(len-0.06,0.03,0.4), M('#6f533e'), 0, 0.12+k*0.48, -0.02);
+    let x=-len/2+0.08;
+    while (x < len/2-0.12){ const bw=0.05+R()*0.06, bh=0.24+R()*0.14; add(g, B(bw,bh,0.28), M(cols[Math.floor(R()*cols.length)]), x+bw/2, 0.135+k*0.48+bh/2, -0.08, false); x+=bw+0.01; }
+  }
+}
+function sofa(r,u,v,len,du,dv,col){
+  const g=group(r,u,v,du,dv), m=M(col||'#5d6f86');
+  add(g, B(len,0.42,0.8), m, 0, 0.21, 0);
+  add(g, B(len,0.5,0.18), m, 0, 0.62, -0.32);
+  for (const sx of [-1,1]) add(g, B(0.16,0.58,0.8), m, sx*(len/2-0.08), 0.29, 0);
+}
+function screen(r,u,v,w,h,tex,y){
+  const g=group(r,u,v,0,-1);
+  add(g, B(w+0.12,h+0.12,0.06), M('#1b2129'), 0, y||1.6, 0);
+  const p=new THREE.Mesh(new THREE.PlaneGeometry(w,h), new THREE.MeshBasicMaterial({map:tex})); p.position.set(0,y||1.6,0.035); g.add(p);
+}
+function printer(r,u,v){
+  const g=group(r,u,v,0,-1);
+  add(g, B(0.9,0.75,0.6), M('#e9ebee'), 0, 0.375, 0);
+  add(g, B(0.7,0.08,0.4), M('#9aa3ad'), 0, 0.79, 0.02);
+  add(g, B(0.3,0.02,0.04), M('#58c08a'), 0.25, 0.7, 0.31, false);
+}
+function roundTable(x,z,rad,h,col){ const g=new THREE.Group(); g.position.set(x,0,z); scene.add(g); add(g, C(rad,rad,0.05,24), M(col||'#d9ccb9'), 0, h, 0); add(g, C(0.05,0.05,h,8), M('#5a626c'), 0, h/2, 0); add(g, C(0.3,0.3,0.03,16), M('#5a626c'), 0, 0.015, 0); return g; }
+
+/* --- Ban Giám đốc --- */
+const R = ROOMS;
+const dDir = desk(R.gd, 0, 9.4, 0, -1, {big:true, mon:2, chair:'#2b2b30'});
+dDir.via = [[1.9,7.6],[1.9,9.4]];
+SPOTS.visitor.push(chairSpot(R.gd,-0.6,7.15,0,1,[],'#7a4a52','Báo cáo CIO'), chairSpot(R.gd,0.6,7.15,0,1,[],'#7a4a52','Báo cáo CIO'));
+sofa(R.gd,-4.4,4.2,2.6,1,0,'#7a4a52'); roundTable(R.gd.cx-3.2, R.gd.s*(2+4.2), 0.45, 0.42, '#6e4c37');
+shelf(R.gd,4.65,6,4,-1,0); plant(R.gd.cx-4.3, R.gd.s*(2+10.2)); plant(R.gd.cx+4.3, R.gd.s*(2+1.0), .9);
+SPOTS.extra.gd_window = mkSpot(R.gd,-2.6,10.3,0,1,'stand',[[-2.6,7.8]],'window','Ngắm phố, suy nghĩ chiến lược');
+
+/* --- Phòng họp --- */
+{ const r=R.hop, tz=r.s*(2+7.4);
+  const t=new THREE.Group(); t.position.set(r.cx,0,tz); scene.add(t);
+  add(t, B(2.0,0.06,4.8), M('#efe9de'), 0, 0.74, 0);
+  for (const sz of [-1.9,1.9]) add(t, B(0.5,0.72,0.5), M('#5a626c'), 0, 0.36, sz);
+  for (const v of [5.8,7.3,8.8]) add(t, C(0.03,0.03,0.08,8), M('#9aa3ad'), 0, 0.81, r.s*(2+v)-tz);
+  const L=(v)=>chairSpot(r,-1.55,v,1,0,[[-2.3,4.4],[-2.3,v]],'#2d6f6f','Họp'), Rr=(v)=>chairSpot(r,1.55,v,-1,0,[[2.3,4.4],[2.3,v]],'#2d6f6f','Họp');
+  SPOTS.seats = {L1:L(5.8),R1:Rr(5.8),L2:L(7.3),R2:Rr(7.3),L3:L(8.8),R3:Rr(8.8),H:chairSpot(r,0,10.3,0,-1,[[2.3,4.4],[2.3,10.3]],'#1f4f4f','Chủ trì họp')};
+  screen(r,0,10.86,3.2,1.25,chartTex(512,200,11,'PHIÊN HỌP · BTCUSDT 4H',true),1.65);
+  plant(r.cx-4.3, r.s*(2+10.2)); plant(r.cx+4.3, r.s*(2+10.2));
+}
+const dThuKy = desk(R.hop,-3.9,2.4,-1,0);
+
+/* --- Phòng Futures --- */
+const dKT = desk(R.fu,-3.9,3.5,-1,0,{mon:2});
+const dVM = desk(R.fu,3.9,3.5,1,0,{mon:2});
+const dFu3 = desk(R.fu,-3.9,6.6,-1,0,{mon:2}), dFu4 = desk(R.fu,3.9,6.6,1,0,{mon:2});
+screen(R.fu,0,10.86,4.4,1.5,chartTex(640,220,7,'FUTURES · BTCUSDT 4H · OB / FVG',true),1.6);
+SPOTS.extra.fu_board = mkSpot(R.fu,0,9.7,0,1,'stand',[],'talk','Vẽ vùng giá lên màn hình lớn');
+plant(R.fu.cx-4.3, R.fu.s*(2+10.2)); plant(R.fu.cx+4.3, R.fu.s*(2+10.2));
+
+/* --- Phòng Spot --- */
+function spotTex(){
+  const w=640,h=220,c=document.createElement('canvas'); c.width=w; c.height=h; const x=c.getContext('2d');
+  x.fillStyle='#0f1720'; x.fillRect(0,0,w,h);
+  x.fillStyle='#d7dfe8'; x.font='600 22px "JetBrains Mono", monospace'; x.fillText('PHÒNG SPOT · CHỈ MUA · KHÔNG ĐÒN BẨY', 16, 34);
+  const rows=[['Trạng thái','chạy thử (sổ ảo)','#e0b341'],['Mỗi lần mua','20% vốn','#93a1b0'],['Vùng mua','OB ngày + tuần chồng','#93a1b0'],['Bán','theo chu kỳ 4 năm','#26a69a']];
+  x.font='500 19px "JetBrains Mono", monospace';
+  rows.forEach((r,i)=>{ const y=80+i*38; x.fillStyle='#93a1b0'; x.fillText(r[0],16,y); x.fillStyle=r[2]; x.fillText(r[1],250,y); });
+  return new THREE.CanvasTexture(c);
+}
+const dSp1 = desk(R.sp,-3.9,3.5,-1,0,{mon:2}), dSp2 = desk(R.sp,3.9,3.5,1,0,{mon:3});
+const dSp3 = desk(R.sp,-3.9,6.6,-1,0,{mon:2}), dSp4 = desk(R.sp,3.9,6.6,1,0);
+screen(R.sp,0,10.86,4.4,1.5,spotTex(),1.6);
+SPOTS.extra.sp_board = mkSpot(R.sp,0,9.7,0,1,'stand',[],'talk','Rà bảng Phòng Spot');
+plant(R.sp.cx-4.3, R.sp.s*(2+10.2)); plant(R.sp.cx+4.3, R.sp.s*(2+10.2));
+
+/* --- Phân tích chung --- */
+const dPt1 = desk(R.pt,-3.9,3.5,-1,0,{mon:2}), dPt2 = desk(R.pt,3.9,3.5,1,0,{mon:3});
+screen(R.pt,0,10.86,4.4,1.5,chartTex(640,220,23,'VĨ MÔ · THANH KHOẢN NHIỀU SÀN',false),1.6);
+shelf(R.pt,4.65,7.6,3.0,-1,0);
+SPOTS.extra.pt_board = mkSpot(R.pt,0,9.7,0,1,'stand',[],'talk','Trình bày số liệu lên màn hình');
+plant(R.pt.cx-4.3, R.pt.s*(2+10.2));
+
+/* --- Thư viện --- */
+const dTV = desk(R.tv,-3.9,3.0,-1,0);
+shelf(R.tv,4.65,4.8,3.4,-1,0); shelf(R.tv,4.65,8.5,3.4,-1,0); shelf(R.tv,0.8,10.7,5.6,0,-1);
+roundTable(R.tv.cx-2.4, R.tv.s*(2+7.5), 0.7, 0.74, '#cdb894');
+SPOTS.shelf.push(
+  mkSpot(R.tv,3.85,4.8,1,0,'stand',[[0,4.8]],'browse','Tìm tài liệu ở thư viện'),
+  mkSpot(R.tv,3.85,8.5,1,0,'stand',[[0,8.5]],'browse','Tìm tài liệu ở thư viện'),
+  mkSpot(R.tv,0.8,9.95,0,1,'stand',[],'browse','Tìm tài liệu ở thư viện'),
+  chairSpot(R.tv,-2.4,6.55,0,1,[[0,6.55]],'#5c6a2a','Đọc tài liệu'),
+  chairSpot(R.tv,-2.4,8.45,0,-1,[[0,8.45]],'#5c6a2a','Đọc tài liệu'));
+plant(R.tv.cx-4.3, R.tv.s*(2+10.2));
+
+/* --- Phòng Thẩm định --- */
+const dPB = desk(R.td,-3.9,3.5,-1,0), dKD = desk(R.td,3.9,3.5,1,0);
+desk(R.td,-3.9,6.6,-1,0); desk(R.td,3.9,6.6,1,0);
+printer(R.td,0,10.45); SPOTS.printer.push(mkSpot(R.td,0,9.75,0,1,'stand',[],'stand','Lấy tài liệu in'));
+for (const u of [-3.6,3.6]){ const g=group(R.td,u,10.6,0,-1); add(g,B(1.0,1.3,0.55),M('#8e979f'),0,0.65,0); for(let k=0;k<3;k++) add(g,B(0.3,0.03,0.02),M('#cfd5da'),0,0.3+k*0.42,0.28,false); }
+
+/* --- Rủi ro & Tuân thủ --- */
+const dQV = desk(R.vr,-3.9,3.5,-1,0), dQR = desk(R.vr,3.9,3.5,1,0);
+desk(R.vr,-3.9,6.6,-1,0); desk(R.vr,3.9,6.6,1,0);
+{ const g=group(R.vr,0,10.45,0,-1); add(g,B(1.0,1.1,0.8),M('#3c4650',{metalness:.4,roughness:.4}),0,0.55,0); add(g,C(0.12,0.12,0.05,16),M('#c9a227',{metalness:.6,roughness:.3}),0,0.62,0.42).rotation.x=Math.PI/2; }
+SPOTS.extra.vr_safe = mkSpot(R.vr,0,9.6,0,1,'stand',[],'stand','Kiểm tra két vốn');
+plant(R.vr.cx-4.3, R.vr.s*(2+10.2)); plant(R.vr.cx+4.3, R.vr.s*(2+10.2));
+
+/* --- Kế toán & Vận hành --- */
+const dTD = desk(R.gk,-3.9,3.5,-1,0,{mon:3}), dKTo = desk(R.gk,3.9,3.5,1,0);
+const dGk3 = desk(R.gk,-3.9,6.6,-1,0), dGk4 = desk(R.gk,3.9,6.6,1,0);
+screen(R.gk,0,10.86,3.0,1.5,boardTex(),1.6);
+printer(R.gk,-3.4,10.45); SPOTS.printer.push(mkSpot(R.gk,-3.4,9.75,0,1,'stand',[[0,9.75]],'stand','Lấy tài liệu in'));
+SPOTS.extra.gk_board = mkSpot(R.gk,0.6,9.7,0,1,'stand',[],'talk','Rà bảng lệnh ảo');
+plant(R.gk.cx+4.3, R.gk.s*(2+10.2));
+
+/* --- Pantry --- */
+{ const r=R.pc, g=group(r,0,10.55,0,-1);
+  add(g,B(7,0.95,0.7),M('#e9e4dc'),0,0.475,0); add(g,B(7.1,0.05,0.75),M('#3b3f45'),0,0.975,0);
+  add(g,B(0.45,0.55,0.4),M('#2b2f35',{metalness:.3}),-1.0,1.27,0); add(g,B(0.3,0.04,0.2),M('#c9a227'),-1.0,1.08,0.12);
+  add(g,B(0.45,0.55,0.4),M('#2b2f35',{metalness:.3}),1.0,1.27,0);
+  for (let i=0;i<4;i++) add(g,C(0.04,0.035,0.09,10),M(['#e06c5a','#f1ece2','#1f8a8a','#e0b341'][i]),-2.6+i*0.2,1.045,0.1);
+  const f=group(r,4.35,10.4,0,-1); add(f,B(0.8,1.9,0.7),M('#dfe3e6',{metalness:.2}),0,0.95,0); add(f,B(0.04,0.6,0.04),M('#8d959e'),-0.3,1.2,0.36);
+  const wc=group(r,-4.6,6.5,1,0); add(wc,B(0.4,1.0,0.4),M('#eef1f3'),0,0.5,0); add(wc,C(0.15,0.15,0.4,14),glassM,0,1.2,0,false);
+  SPOTS.coffee.push(mkSpot(r,-2,9.8,0,1,'stand',[[-2,8.6]],'drink','Pha cà phê'), mkSpot(r,0,9.8,0,1,'stand',[[0.2,8.6]],'drink','Pha cà phê'), mkSpot(r,2,9.8,0,1,'stand',[[2,8.6]],'drink','Pha cà phê'));
+  roundTable(r.cx, r.s*(2+5.5), 0.45, 1.05, '#efe9de');
+  SPOTS.chat.push(mkSpot(r,-0.85,5.5,1,0,'stand',[],'drink','Trò chuyện ở pantry'), mkSpot(r,0.85,5.5,-1,0,'stand',[[1.3,4.6]],'drink','Trò chuyện ở pantry'), mkSpot(r,0,6.4,0,-1,'stand',[[1.3,4.6],[1.3,6.4]],'drink','Trò chuyện ở pantry'));
+  sofa(r,4.45,5.0,2.6,-1,0,'#c96a5a');
+  SPOTS.sofa.push(mkSpot(r,4.1,4.4,-1,0,'sit',[[2.6,4.4]],'rest','Nghỉ giải lao'), mkSpot(r,4.1,5.6,-1,0,'sit',[[2.6,5.6]],'rest','Nghỉ giải lao'));
+  plant(r.cx-4.3, r.s*(2+1.0), .9);
+}
+// corridor & outdoors
+for (const x of [-15,-5,5,15]) for (const z of [-1.55,1.55]) plant(x, z, .7);
+const TREE_R = mulberry(42);
+for (let i=0;i<26;i++){
+  const side=i%2?1:-1, x=-40+TREE_R()*80, z=side*(17+TREE_R()*10);
+  const g=new THREE.Group(); g.position.set(x,-0.42,z); scene.add(g);
+  add(g, C(0.12,0.16,1.0,8), M('#7a5a40'), 0, 0.5, 0);
+  const s=0.8+TREE_R()*0.7; add(g, new THREE.ConeGeometry(1.1*s,2.4*s,7), M('#5c8f52',{flatShading:true}), 0, 1.0+1.2*s, 0);
+}
+for (let i=0;i<6;i++){ const g=new THREE.Group(); g.position.set(32+i*0.01, -0.42, -9+i*3.6); scene.add(g); add(g, C(0.12,0.16,1.0,8), M('#7a5a40'), 0,0.5,0); add(g, new THREE.IcosahedronGeometry(1.1,0), M('#6aa05c',{flatShading:true}), 0, 1.9, 0); }
+
+/* night lights per room */
+const roomLights = [];
+for (const k in ROOMS){ const r=ROOMS[k]; const l=new THREE.PointLight(0xffd9a6, 0, 13, 2); l.position.set(r.cx, 2.4, r.s*7.5); scene.add(l); roomLights.push(l); }
+{ const l=new THREE.PointLight(0xffe2b8, 0, 26, 2); l.position.set(0,2.4,0); scene.add(l); roomLights.push(l); }
+
+/* floor labels that turn to face the camera */
+const decals = [];
+function decal(text, sub, color, x, z, w){
+  const c=document.createElement('canvas'); c.width=1024; c.height=sub?300:200; const g=c.getContext('2d');
+  g.textAlign='center'; g.textBaseline='middle';
+  g.fillStyle=color; g.font='700 96px "Be Vietnam Pro", system-ui, sans-serif'; g.fillText(text, 512, sub?110:100);
+  if (sub){ g.globalAlpha=.75; g.font='500 54px "Be Vietnam Pro", system-ui, sans-serif'; g.fillText(sub, 512, 220); }
+  const tex=new THREE.CanvasTexture(c); tex.anisotropy=4;
+  const h=w*c.height/c.width, p=new THREE.Mesh(new THREE.PlaneGeometry(w,h), new THREE.MeshBasicMaterial({map:tex, transparent:true, depthWrite:false, opacity:.92}));
+  p.rotation.x=-Math.PI/2; const hold=new THREE.Group(); hold.position.set(x,0.035,z); hold.add(p); scene.add(hold); decals.push(hold);
+}
+function buildDecals(){
+  for (const k in ROOMS){ const r=ROOMS[k]; const p=W(r,0,1.9); decal(r.name, null, mix(r.color,'#000000',.08), p.x, p.z, 5.2); }
+  decal('QBK', 'Quỹ', '#59636e', 21.4, 0, 3.4);
+}
+(document.fonts && document.fonts.ready ? Promise.race([document.fonts.ready, new Promise(r=>setTimeout(r,2500))]) : Promise.resolve()).then(buildDecals);
+
+/* ---------- women ---------- */
+function makeWoman(L){
+  const g=new THREE.Group(), body=new THREE.Group(); g.add(body);
+  const skin=M(L.skin), top=M(L.top), sk=M(L.skirt), hair=M(L.hair,{roughness:.55}), shoe=M(L.shoe||'#2b2224'), leg=M(L.legs||L.skin);
+  const mkLeg=(x)=>{ const hip=new THREE.Group(); hip.position.set(x,0.78,0); body.add(hip);
+    add(hip, C(0.062,0.05,0.4,10), leg, 0, -0.2, 0);
+    const knee=new THREE.Group(); knee.position.y=-0.4; hip.add(knee);
+    add(knee, C(0.048,0.036,0.36,10), leg, 0, -0.18, 0);
+    add(knee, B(0.09,0.06,0.19), shoe, 0, -0.36, 0.04);
+    return {hip,knee}; };
+  const lL=mkLeg(-0.075), lR=mkLeg(0.075);
+  const skirt=add(body, C(0.15,0.25,0.4,16), sk, 0, 0.64, 0);
+  const torso=add(body, C(0.15,0.13,0.46,14), top, 0, 1.06, 0); torso.scale.z=0.74;
+  if (L.blazer){ add(body, B(0.06,0.3,0.01), M('#f4efe8'), 0, 1.12, 0.112, false); }
+  add(body, C(0.045,0.05,0.1,8), skin, 0, 1.33, 0);
+  const hd=new THREE.Group(); hd.position.y=1.47; body.add(hd);
+  add(hd, Sp(0.125,18,14), skin);
+  const eye=M('#2a1d1a'); add(hd, Sp(0.016,8,6), eye, -0.045, 0.01, 0.113, false); add(hd, Sp(0.016,8,6), eye, 0.045, 0.01, 0.113, false);
+  add(hd, B(0.045,0.011,0.01), M('#c4626b'), 0, -0.055, 0.12, false);
+  add(hd, Sp(0.02,8,6), M(mix(L.skin,'#e07a7a',.35)), -0.075, -0.03, 0.095, false); add(hd, Sp(0.02,8,6), M(mix(L.skin,'#e07a7a',.35)), 0.075, -0.03, 0.095, false);
+  const cap=add(hd, new THREE.SphereGeometry(0.138,18,12,0,Math.PI*2,0,Math.PI*0.5), hair, 0, 0.004, -0.01); cap.rotation.x=-0.28;
+  add(hd, Sp(0.13,16,12), hair, 0, -0.005, -0.032);
+  if (L.style==='long'){ const h=add(hd, C(0.12,0.135,0.42,14), hair, 0, -0.19, -0.06); h.scale.z=0.55; }
+  if (L.style==='ponytail'){ add(hd, Sp(0.04,10,8), hair, 0, 0.03, -0.14); const p=add(hd, C(0.045,0.022,0.32,8), hair, 0, -0.1, -0.19); p.rotation.x=0.38; }
+  if (L.style==='bun'){ add(hd, Sp(0.068,12,10), hair, 0, 0.09, -0.1); }
+  if (L.style==='bob'){ const b=add(hd, C(0.142,0.152,0.15,16), hair, 0, -0.075, -0.035); b.scale.z=0.86; }
+  if (L.glasses){ const gm=M('#2b2b2b'); for (const x of [-0.046,0.046]) add(hd, new THREE.TorusGeometry(0.03,0.006,6,14), gm, x, 0.01, 0.124, false); add(hd, B(0.03,0.006,0.006), gm, 0, 0.012, 0.126, false); }
+  const mkArm=(x)=>{ const sh=new THREE.Group(); sh.position.set(x,1.25,0); body.add(sh);
+    add(sh, Sp(0.056,10,8), top);
+    add(sh, C(0.046,0.038,0.46,10), top, 0, -0.24, 0);
+    add(sh, Sp(0.042,10,8), skin, 0, -0.49, 0); return sh; };
+  const aL=mkArm(-0.19), aR=mkArm(0.19);
+  const cup=add(aR, C(0.04,0.035,0.1,10), M('#f6f3ee'), 0, -0.52, 0.06); cup.visible=false;
+  return {g, body, lL, lR, aL, aR, skirt, hd, cup};
+}
+
+/* ---------- nhân sự: Phòng Futures, Phòng Spot, khối dùng chung (docs/PHONG_SPOT_FUTURES.md) ---------- */
+const STAFF = [
+  {id:'cio', key:'cio', name:'Quyên', role:'CIO', room:'gd', desk:dDir, model:'Claude Opus 5.5 · medium', extra:['gd_window'],
+   look:{skin:'#f1caa6', hair:'#1a1210', style:'bun', top:'#7d2742', skirt:'#24242c', legs:'#3a2a2e', blazer:true},
+   work:['Xem vốn của Phòng Futures và Phòng Spot','Chuẩn bị đề xuất chia vốn ngày 1','Đọc báo cáo Performance từng bàn'],
+   talk:['Spot 80%, Futures 20%.','Đề xuất chia vốn chờ chủ duyệt.','So NAV với giữ BTC trước khi đổi tỷ lệ.']},
+  {id:'giam_doc', key:'giam_doc', name:'Lan', role:'PM Bàn AI', room:'fu', desk:dVM, model:'Claude Opus 5.5 · medium', extra:['fu_board'],
+   look:{skin:'#f4d2b2', hair:'#2a1a12', style:'long', top:'#a23b5a', skirt:'#24242c', blazer:true},
+   work:['Đọc đề xuất lệnh A/B','Rà kỷ luật vào lệnh','Xem lại biên bản họp trước'],
+   talk:['Chủ chưa gõ /hop thì mình chưa họp.','Lệnh nào thiếu căn cứ thì bỏ.','Khối lượng để Risk tính.']},
+  {id:'ky_thuat', key:'ky_thuat', name:'Mai', role:'Kỹ thuật', room:'fu', desk:dKT, model:'Claude Opus 5.5 · medium', extra:['fu_board'],
+   look:{skin:'#efc29c', hair:'#2b1b14', style:'ponytail', top:'#2f6fd6', skirt:'#2c3445', glasses:true},
+   work:['Soi OB và FVG khung 4H','Đo Fib cho lệnh A/B','Quét EQH, EQL khung 1H'],
+   talk:['OB 4H phía dưới còn nguyên.','FVG 1H chưa được lấp.','Chờ giá về vùng rồi tính.']},
+  {id:'execution', key:'execution', name:'Hương', role:'Execution', room:'fu', desk:dFu3, model:'Code · miễn phí', extra:['fu_board'],
+   look:{skin:'#e9bb94', hair:'#24170f', style:'bob', top:'#4f86e8', skirt:'#2f2f3a'},
+   work:['Theo dõi giá so với TP, SL','Khớp giả lập lệnh ảo','Canh lệnh chờ khớp'],
+   talk:['Lệnh chờ chưa khớp.','Đã dời SL lệnh E theo giá.','Phí sàn và funding đã trừ vào lời lỗ.']},
+  {id:'pm_e', key:'pm_e', name:'Bảo', role:'Bàn E', room:'fu', desk:dFu4, model:'Code · luật đã backtest', extra:['fu_board'],
+   look:{skin:'#f1caa6', hair:'#3a2216', style:'ponytail', top:'#7fa6ee', skirt:'#3b3b46'},
+   work:['Quét tín hiệu OB 1H (Bàn E)','Đặt lệnh chờ ở mép OB','Gửi tín hiệu sang Risk'],
+   talk:['Chưa có tín hiệu E mới.','Bàn R đã đóng, giờ chỉ còn Bàn E.','Tín hiệu nào cũng phải qua Risk.']},
+  {id:'pm_spot', key:'pm_spot', name:'Châu', role:'PM Spot', room:'sp', desk:dSp1, model:'Claude Sonnet 5.5', extra:['sp_board'],
+   look:{skin:'#f4d2b2', hair:'#1b1311', style:'bun', top:'#9c4dcc', skirt:'#2a2433', blazer:true},
+   work:['Xem coin vừa chạm vùng OB chồng','Quyết MUA hay CHỜ khi code báo','Rà sổ Phòng Spot'],
+   talk:['Giá chạm vùng mạnh thì mình mới xem.','Mỗi lần mua 20% vốn, không cắt lỗ.','Altcoin chờ BTC chạm vùng trước.']},
+  {id:'sang_loc', key:'ky_thuat_spot', name:'Diệp', role:'Kỹ thuật Spot', room:'sp', desk:dSp2, model:'Code · miễn phí', extra:['sp_board'],
+   look:{skin:'#efc29c', hair:'#2b1b14', style:'long', top:'#b07ad9', skirt:'#2c3445', glasses:true},
+   work:['Tính vùng OB ngày + tuần chồng nhau','Canh giá mỗi giờ','Báo PM Spot khi giá chạm vùng'],
+   talk:['Đã bỏ meme và stablecoin khỏi rổ.','Vùng mạnh cần ít nhất 2 OB chồng.','Altcoin chờ BTC chạm vùng trước.']},
+  {id:'quant_spot', key:'quant', name:'Nhi', role:'Quant', room:'sp', desk:dSp3, model:'Code · miễn phí', extra:['sp_board'],
+   look:{skin:'#e9bb94', hair:'#1c1412', style:'bob', top:'#7b3fb0', skirt:'#3a3a44', glasses:true},
+   work:['So kết quả thật với backtest','Tính cả coin đã bị gỡ khỏi sàn','So với giữ BTC'],
+   talk:['Backtest có tính phí và trượt giá.','Giai đoạn kiểm tách riêng.','Luật chưa qua kiểm thì không dùng.']},
+  {id:'performance', key:'performance', name:'Khánh', role:'Performance', room:'gk', desk:dGk4, model:'Code · miễn phí', extra:['gk_board'],
+   look:{skin:'#f1caa6', hair:'#4a2c1e', style:'ponytail', top:'#c79be8', skirt:'#2b2f3a'},
+   work:['Tính Sharpe từng bàn','Đo sụt giảm Spot và Futures','Chấm điểm agent theo giá thật'],
+   talk:['Sharpe cần ít nhất 5 ngày.','Bàn sụt quá giới hạn thì Risk cho nghỉ.','Chấm điểm theo giá thật, không theo lời.']},
+  {id:'vi_mo', key:'vi_mo', name:'Hà', role:'Vĩ mô', room:'pt', desk:dPt1, model:'Gemini Flash (dự phòng Sonnet 5.5)', extra:['pt_board'],
+   look:{skin:'#f4d2b2', hair:'#3b2418', style:'long', top:'#5b6b78', skirt:'#d8d0c2'},
+   work:['Đọc lịch kinh tế tuần này','Theo dõi Fear & Greed','Đọc tin Fed'],
+   talk:['Tuần này có số liệu CPI Mỹ.','Funding đang ổn.','Nhận định dùng cho cả hai phòng.']},
+  {id:'thanh_khoan', key:'thanh_khoan', name:'Tâm', role:'Thanh khoản', room:'pt', desk:dPt2, model:'Code · API sàn miễn phí', extra:['pt_board'],
+   look:{skin:'#efc29c', hair:'#1a1210', style:'bun', top:'#7d8b97', skirt:'#2a2f2a'},
+   work:['Quét sổ lệnh nhiều sàn','Đo độ sâu ±1% từng coin','Tìm tường lệnh lớn'],
+   talk:['Sổ lệnh spot dùng cho Phòng Spot.','Funding, OI dùng cho Phòng Futures.','Tường lệnh có thể bị rút.']},
+  {id:'phan_bien', key:'phan_bien', name:'Linh', role:'Phản biện', room:'td', desk:dPB, model:'Claude Sonnet 5.5 · medium',
+   look:{skin:'#e9bb94', hair:'#1c1412', style:'bob', top:'#d9822b', skirt:'#3a3a44'},
+   work:['Tìm điểm yếu của đề xuất','Dựng kịch bản thua','Chất vấn đề xuất của CIO'],
+   talk:['Nếu thủng vùng thì sao?','Backtest có thiếu coin chết không?','Điểm vào này hơi muộn.']},
+  {id:'kiem_duyet', key:'kiem_duyet', name:'Trang', role:'Kiểm duyệt', room:'td', desk:dKD, model:'Claude Sonnet 5.5 · medium',
+   look:{skin:'#f1caa6', hair:'#120d0c', style:'long', top:'#e9a04f', skirt:'#2b2f3a', glasses:true},
+   work:['Chấm 7 tiêu chí đề xuất','Đối chiếu số liệu với dữ liệu code','Soát đề xuất của cả hai phòng'],
+   talk:['Số liệu khớp dữ liệu code.','Đề xuất thiếu nguồn, trả lại.','Lệnh A cần từ 7 điểm.']},
+  {id:'risk', key:'quan_ly_rui_ro', name:'Vy', role:'Risk', room:'vr', desk:dQR, model:'Code · có quyền chặn', extra:['vr_safe'],
+   look:{skin:'#f1caa6', hair:'#3a2216', style:'ponytail', top:'#2e9e5b', skirt:'#3b3b46'},
+   work:['Tính khối lượng theo vốn Futures','Kiểm đòn bẩy và tổng rủi ro mở','Kiểm tỷ trọng Spot từng coin'],
+   talk:['Tổng rủi ro futures mở tối đa 1% NAV.','Một coin Spot tối đa 40%, altcoin 20%.','Vượt giới hạn là chặn.']},
+  {id:'compliance', key:'compliance', name:'Ngọc', role:'Compliance', room:'vr', desk:dQV, model:'Code · miễn phí', extra:['vr_safe'],
+   look:{skin:'#efc29c', hair:'#1a1210', style:'long', top:'#57b97c', skirt:'#2a2f2a'},
+   work:['Kiểm mốc SL/TP có thật','Kiểm luật đã bật','Kiểm trần chi phí AI'],
+   talk:['Không có số bịa.','Lệnh đúng luật đã duyệt.','Chi phí AI còn trong trần.']},
+  {id:'van_hanh', key:'theo_doi', name:'Oanh', role:'Operations', room:'gk', desk:dTD, model:'Code · miễn phí', extra:['gk_board'],
+   look:{skin:'#e9bb94', hair:'#24170f', style:'bun', top:'#b8901a', skirt:'#2f2f3a'},
+   work:['Cập nhật bảng lệnh ảo','Gửi bản tin sáng 07:07','Cập nhật app mỗi giờ'],
+   talk:['Bản tin sáng đã gửi.','App đã cập nhật.','Đã lưu dữ liệu vào qbk-data.']},
+  {id:'ke_toan', key:'ke_toan', name:'Yến', role:'Kế toán quỹ', room:'gk', desk:dKTo, model:'Code · miễn phí', extra:['gk_board'],
+   look:{skin:'#f4d2b2', hair:'#1b1311', style:'bun', top:'#d4ad3a', skirt:'#4a4a55', glasses:true},
+   work:['Chốt NAV','Cộng sổ Spot và Futures','Ghi rót / rút vốn'],
+   talk:['NAV đã chốt.','NAV gồm cả sổ Spot.','Lời lỗ futures đã trừ phí.']},
+  {id:'kiem_toan', key:'kiem_toan', name:'Phương', role:'Kiểm toán', room:'gk', desk:dGk3, model:'Code · script độc lập', extra:['gk_board'],
+   look:{skin:'#f1caa6', hair:'#2b1b14', style:'bob', top:'#8a7420', skirt:'#3a3a44'},
+   work:['Tự tính lại NAV từ dữ liệu gốc','Đối chiếu với Kế toán','Chuẩn bị kiểm toán ngày 1'],
+   talk:['Mình không dùng số của Kế toán.','Đối chiếu khớp.','Ngày 1 kiểm toán tháng.']},
+  {id:'thu_ky', key:'thu_ky', name:'Thảo', role:'Thư ký · NĐT', room:'hop', desk:dThuKy, model:'Code · miễn phí',
+   look:{skin:'#f4d2b2', hair:'#4a2c1e', style:'bun', top:'#1f8a8a', skirt:'#efe9de'},
+   work:['Soạn biên bản họp','Gửi Telegram cho chủ','Sắp lịch họp'],
+   talk:['Đã ghi biên bản phiên trước.','Đã gửi Telegram cho chủ.','Họp chỉ khi chủ gõ /hop.']},
+  {id:'thu_vien', key:'thu_vien', name:'An', role:'Thư viện (Telegram)', room:'tv', desk:dTV, model:'Claude Sonnet 5.5 · medium',
+   look:{skin:'#efc29c', hair:'#5a3a22', style:'long', top:'#7a8a2e', skirt:'#e3dccd'},
+   work:['Tóm tắt tài liệu chủ gửi','Gắn bài học cho từng agent','Sắp xếp kho kiến thức'],
+   talk:['Chủ vừa gửi tài liệu mới.','Bài học mới đã gắn cho Kỹ thuật.','Bài học nào cũng ghi nguồn.']},
+];
+const BY = {};
+
+/* ---------- DỮ LIỆU THẬT: app cha (index.html, cùng trang) để sẵn window.QBK_DATA ---------- */
+const D = (()=>{ try { return (window.parent && window.parent !== window && window.parent.QBK_DATA) || null; } catch(e){ return null; } })();
+const fmt = (x,d=2) => (x===null||x===undefined) ? '–' : Number(x).toLocaleString('vi-VN',{minimumFractionDigits:d,maximumFractionDigits:d});
+const KEY2ID = {}; STAFF.forEach(d=>{ if (d.key) KEY2ID[d.key]=d.id; });
+Object.assign(KEY2ID, {it_data:'van_hanh', theo_doi:'van_hanh'});
+if (D){
+  (D.nhan_su||[]).forEach(a=>{ const st=STAFF.find(x=>x.key===a.key); if (st){ st.model=a.ai; st.status=a.trang_thai; } });
+  const q=D.quy||{}, n=q.nav||{}, sp=q.spot||{}, fu=n.futures||{};
+  const open=(D.lenh||[]).filter(o=>['CHO_KHOP','DANG_CHAY'].includes(o.ma_trang_thai) && !o.theo_doi);
+  const add=(id, work, talk)=>{ const st=STAFF.find(x=>x.id===id); if (!st) return; if (work&&work.length) st.work=work.concat(st.work.slice(0,1)); if (talk&&talk.length) st.talk=talk; };
+  if (n.nav!==undefined){
+    add('cio', ['Xem NAV '+fmt(n.nav)+' USD','So quỹ ('+fmt(n.lai_pct)+'%) với giữ BTC'], ['NAV '+fmt(n.nav)+', Spot '+fmt(n.spot&&n.spot.gia_tri)+', Futures '+fmt(fu.von)+'.', q.de_xuat_cio?'Đề xuất chia vốn đang chờ chủ duyệt.':'Chưa cần đổi tỷ lệ chia vốn.']);
+    add('ke_toan', ['Chốt NAV '+fmt(n.nav)+' USD','Cộng sổ Spot '+fmt(n.spot&&n.spot.gia_tri)], ['NAV '+fmt(n.nav)+', giá đơn vị '+fmt(n.gia_don_vi,4)+'.','Phí sàn + funding đã trả '+fmt(n.phi_da_tra)+' USD.']);
+    add('risk', ['Kiểm rủi ro mở '+fmt(n.rui_ro_dang_mo)+' USD','Kiểm đòn bẩy '+fmt(fu.don_bay||0)+'×'], ['Rủi ro đang mở '+fmt(n.rui_ro_dang_mo_pct||0)+'% / '+fmt((q.gioi_han||{}).rui_ro_mo_toi_da_pct_nav,1)+'% NAV.', 'Phơi nhiễm ròng '+fmt(n.phoi_nhiem_rong_pct||0,0)+'% NAV.', (q.kiem_soat||[]).filter(c=>c.chan).length+' lần chặn gần đây.']);
+  }
+  if (sp.gia_tri!==undefined || sp.von!==undefined){
+    const pos=(sp.vi_the||[]).map(p=>p.coin+' '+(p.lai_pct>=0?'+':'')+fmt(p.lai_pct,1)+'%');
+    add('pm_spot', pos.length?['Rà vị thế '+pos.join(', ')]:['Chờ giá về vùng, tiền mặt '+fmt(sp.tien_mat,0)+' USD'],
+        [(sp.nhat_ky&&sp.nhat_ky[0])?('Lần trước xem '+sp.nhat_ky[0].coin+': '+(sp.nhat_ky[0].quyet_dinh==='MUA'?'mua':'chờ')+'.'):'Chưa có coin nào chạm vùng.', sp.ngung_mua?'Risk Spot đang cho ngừng mua.':'Mỗi lần mua 20% sổ, không cắt lỗ.']);
+    const zs=Object.keys(sp.vung||{}); add('sang_loc', zs.length?['Canh vùng OB của '+zs.slice(0,5).join(', ')]:null, ['Cửa altcoin '+(sp.cua_btc_mo?'đang mở.':'đang đóng, chờ BTC chạm vùng.')]);
+  }
+  add('execution', open.length?open.slice(0,3).map(o=>'Canh lệnh #'+o.id+' '+o.hang+' '+o.huong+' ('+o.trang_thai.toLowerCase()+')'):null, open.length?[open.length+' lệnh futures đang mở.']:['Không có lệnh futures nào đang mở.']);
+  const lastE=(D.lenh||[]).find(o=>o.hang==='E'); if (lastE) add('pm_e', ['Theo dõi lệnh E #'+lastE.id+' '+lastE.huong], ['Lệnh E gần nhất #'+lastE.id+': '+lastE.trang_thai.toLowerCase()+'.']);
+  const m=(D.cuoc_hop||[])[0]; if (m) add('giam_doc', ['Đọc lại biên bản họp #'+m.id], ['Họp gần nhất '+m.luc+': '+(m.ket_luan.map(k=>'PM '+k.quyet_dinh.toLowerCase()+' '+k.hang).join(', ')||'không có phương án')+'.']);
+  const tk=D.thanh_khoan; if (tk) add('thanh_khoan', ['Quét '+tk.quet_lan_nay+' coin lúc '+tk.luc], ['Đã quét '+tk.so_coin+' coin, '+Object.values(tk.san).filter(v=>String(v).startsWith('ok')).length+' sàn trả dữ liệu.']);
+  const ai=D.chi_phi_ai; if (ai) add('compliance', null, ['Chi phí AI tháng '+fmt(ai.thang,2)+' / '+fmt(ai.tran,0)+' USD.','Không có số bịa thì mới cho qua.']);
+}
+
+/* ---------- routing ---------- */
+function route(a, b, from){
+  const pts=[]; const P=(r,uv)=>pts.push(W(r,uv[0],uv[1]));
+  if (a) for (const q of a.via.slice().reverse()) P(a.room,q);
+  if (!a || a.room!==b.room){
+    const lane=rand(-0.75,0.75);
+    if (a){ P(a.room,[0,1.2]); P(a.room,[0,0]); pts.push(new V3(a.room.cx,0,lane)); }
+    pts.push(new V3(b.room.cx,0,lane)); P(b.room,[0,0]); P(b.room,[0,1.2]);
+  }
+  for (const q of b.via) P(b.room,q);
+  pts.push(b.pos.clone());
+  const out=[]; let last=from;
+  for (const p of pts){ if (!last || p.distanceTo(last)>0.05){ out.push(p); last=p; } }
+  return out;
+}
+const free = list => { const f=list.filter(s=>!s.occ); return f.length?pick(f):null; };
+
+/* ---------- agents ---------- */
+const SPEED = 1.9;
+const pickables = [];
+class Agent{
+  constructor(d){
+    this.d=d; this.room=ROOMS[d.room]; this.color=this.room.color;
+    this.b=makeWoman(d.look); scene.add(this.b.g);
+    this.b.g.traverse(o=>{ if (o.isMesh){ o.userData.agent=this; pickables.push(o); } });
+    this.home=d.desk; this.spot=null; this.path=[]; this.state='stay'; this.timer=rand(1,14);
+    this.walkPh=0; this.t=Math.random()*10; this.sayT=rand(6,22); this.inMeeting=false; this.queued=null;
+    this.place(this.home, 'Làm việc: '+pick(d.work));
+    // DOM tag
+    const el=document.createElement('div'); el.className='tag';
+    el.innerHTML='<div class="bubble" hidden></div><div class="nm"><i></i>'+d.name+' <span>'+d.role+'</span></div>';
+    el.querySelector('i').style.background=this.color;
+    $('#tags').appendChild(el); this.el=el; this.bub=el.querySelector('.bubble'); this.bubT=0;
+  }
+  place(spot, label){ this.spot=spot; spot.occ=this; this.b.g.position.copy(spot.pos); this.b.g.rotation.y=spot.h; this.heading=spot.h; this.activity=label||spot.label; this.state='stay'; this.snapPose(); }
+  go(spot, label, dur, onArrive){
+    if (this.state==='walk'){ this.queued=[spot,label,dur,onArrive]; if (spot!==this.target){ if (spot.occ && spot.occ!==this) {} spot.occ=this; } return; }
+    const from=this.spot; if (from && from.occ===this) from.occ=null;
+    spot.occ=this; this.path=route(from, spot, this.b.g.position); this.target=spot; this.state='walk';
+    this.after={label:label||spot.label, dur:dur, onArrive:onArrive};
+    this.activity = spot===this.home ? 'Quay về bàn làm việc' : 'Đang đi: '+(label||spot.label).toLowerCase();
+  }
+  arrive(){
+    const s=this.target; this.spot=s; this.b.g.position.copy(s.pos); this.state='stay';
+    if (this.queued){ const q=this.queued; this.queued=null; if (q[0]!==s){ this.go.apply(this,q); return; } }
+    this.activity=this.after.label; this.timer=this.after.dur; if (this.after.onArrive) this.after.onArrive(this);
+  }
+  next(){
+    if (this.inMeeting) return;
+    if (this.spot!==this.home){ this.go(this.home, 'Làm việc: '+pick(this.d.work), rand(14,30)); return; }
+    const opts=[
+      [3, ()=>free(SPOTS.coffee)], [2, ()=>free(SPOTS.chat)], [2, ()=>free(SPOTS.sofa)],
+      [1.6, ()=>free(SPOTS.printer)], [1.3, ()=>free(SPOTS.shelf)],
+    ];
+    if (this.d.id!=='cio') opts.push([1.2, ()=>free(SPOTS.visitor)]);
+    (this.d.extra||[]).forEach(k=>opts.push([2, ()=>{ const s=SPOTS.extra[k]; return s.occ?null:s; }]));
+    const peers=AGENTS.filter(o=>o!==this && o.spot===o.home && o.state==='stay' && !o.inMeeting && !o.home.visit.occ);
+    if (peers.length) opts.push([3, 'visit']);
+    let tot=opts.reduce((a,o)=>a+o[0],0), r=Math.random()*tot, ch=opts[0];
+    for (const o of opts){ r-=o[0]; if (r<=0){ ch=o; break; } }
+    if (ch[1]==='visit'){
+      const p=pick(peers);
+      this.go(p.home.visit, 'Trao đổi với '+p.d.name+' ('+p.d.role+')', rand(6,9), me=>{
+        me.say(pick(['Xem giúp mình vùng này nhé?','Số này lấy từ đâu vậy?','Chiều nay họp chưa?','Gửi mình bản mới nhé.']));
+        setTimeout(()=>p.say(pick(['Ok, để mình xem.','Lấy từ ảnh chụp thị trường.','Gửi rồi đó!','Họp lúc 14:00 nha.'])), 1600/S.speed);
+        log(me, 'qua bàn '+p.d.name+' trao đổi');
+      });
+      return;
+    }
+    const s=ch[1]();
+    if (!s){ this.timer=rand(6,12); return; }
+    this.go(s, s.label, s.kind==='rest'||s.kind==='chair'?rand(7,11):rand(4,8), me=>{
+      if (s.kind==='drink' && Math.random()<.5) me.say(pick(['Cà phê sáng là phải có!','Hôm nay thị trường im ghê.','Ai uống trà sữa không?','Pha ấm trà sen cho cả phòng nhé.','Cà phê muối hay bạc xỉu?','Nghỉ 5 phút rồi quay lại canh giá.']));
+      if (s.label==='Báo cáo CIO'){ me.say('Em báo cáo nhanh ạ.'); setTimeout(()=>BY.cio.say('Ừ, em nói đi.'),1500/S.speed); log(me,'lên báo cáo CIO'); }
+    });
+  }
+  say(text, dur){ this.bub.textContent=text; this.bub.hidden=false; this.bubT=(dur||3.4); }
+  snapPose(){ this._snap=true; }
+  update(dt){
+    this.t+=dt; const b=this.b, g=b.g;
+    if (this.bubT>0){ this.bubT-=dt; if (this.bubT<=0) this.bub.hidden=true; }
+    if (this.state==='walk'){
+      const tgt=this.path[0];
+      if (!tgt){ this.arrive(); }
+      else {
+        const d=tgt.clone().sub(g.position); d.y=0; const L=d.length(), st=SPEED*dt;
+        if (L<=st){ g.position.copy(tgt); this.path.shift(); if (!this.path.length) this.arrive(); }
+        else { g.position.addScaledVector(d, st/L); this.heading=Math.atan2(d.x,d.z); }
+        this.walkPh += dt*SPEED*3.4;
+      }
+    } else {
+      if (this.spot) this.heading=this.spot.h;
+      if (!this.inMeeting){ this.timer-=dt; if (this.timer<=0) this.next(); }
+      if (this.spot===this.home && !this.inMeeting && !S.meeting){ this.sayT-=dt; if (this.sayT<=0){ this.sayT=rand(14,30); if (Math.random()<.6){ const line=pick(this.d.talk); this.say(line); log(this, '“'+line+'”'); } } }
+    }
+    // heading
+    let dh=this.heading-g.rotation.y; dh=Math.atan2(Math.sin(dh),Math.cos(dh)); g.rotation.y += dh*Math.min(1, dt*10);
+    // pose targets
+    const walking=this.state==='walk', sp=this.spot, sit=!walking && sp && sp.pose==='sit', kind=sp?sp.kind:'';
+    let hl=0,hr=0,kl=0,kr=0,al=0.04,ar=0.04,by=0,sky=1,hy=0;
+    if (walking){ const s=Math.sin(this.walkPh); hl=s*.55; hr=-s*.55; kl=Math.max(0,Math.sin(this.walkPh+1.3))*.75; kr=Math.max(0,Math.sin(this.walkPh+1.3+Math.PI))*.75; al=-s*.42; ar=s*.42; by=Math.abs(Math.cos(this.walkPh))*.03; }
+    else if (sit){ hl=hr=-1.5; kl=kr=1.5; by=-0.3; sky=.55;
+      if (kind==='desk'){ al=-1.12+Math.sin(this.t*17)*.05; ar=-1.12+Math.sin(this.t*17+1.7)*.05; hy=Math.sin(this.t*.6)*.08; }
+      else { al=ar=-0.55; hy=Math.sin(this.t*.8+this.d.name.length)*.35; } }
+    else {
+      al=ar=0.04+Math.sin(this.t*1.6)*.025;
+      if (kind==='drink'){ ar=-1.0; hy=Math.sin(this.t*.9)*.3; }
+      if (kind==='talk'){ ar=-0.9+Math.sin(this.t*3)*.35; }
+      if (kind==='browse'){ ar=-1.3+Math.sin(this.t*1.2)*.15; hy=Math.sin(this.t*.7)*.25; }
+      if (kind==='visit'){ al=ar=-0.25; hy=Math.sin(this.t*1.3)*.15; }
+    }
+    b.cup.visible = !walking && kind==='drink';
+    const k=this._snap?1:Math.min(1,dt*12); this._snap=false;
+    const L=(o,p,v)=>{ o[p]+= (v-o[p])*k; };
+    L(b.lL.hip.rotation,'x',hl); L(b.lR.hip.rotation,'x',hr); L(b.lL.knee.rotation,'x',kl); L(b.lR.knee.rotation,'x',kr);
+    L(b.aL.rotation,'x',al); L(b.aR.rotation,'x',ar); L(b.body.position,'y',by); L(b.skirt.scale,'y',sky); L(b.hd.rotation,'y',hy);
+    b.skirt.position.y = 0.84 - 0.2*b.skirt.scale.y;
+  }
+}
+const AGENTS = STAFF.map(d => (BY[d.id]=new Agent(d)));
+
+/* selection ring */
+const ring = new THREE.Mesh(new THREE.RingGeometry(0.36,0.46,32), new THREE.MeshBasicMaterial({color:'#1f8a8a', transparent:true, opacity:.9, depthWrite:false}));
+ring.rotation.x=-Math.PI/2; ring.visible=false; scene.add(ring);
+
+/* ---------- meeting ---------- */
+const MEETS = {
+  fu:{name:'Bàn AI (Phòng Futures)', host:'giam_doc',
+      seats:[['giam_doc','H'],['ky_thuat','L1'],['vi_mo','R1'],['phan_bien','L2'],['kiem_duyet','R2'],['risk','L3'],['compliance','R3']],
+      script:[
+        ['giam_doc','Bắt đầu họp Bàn AI. Mời Kỹ thuật trình bày.'],
+        ['ky_thuat','Đề xuất lệnh A: Long tại OB 4H còn nguyên.'],
+        ['vi_mo','Vĩ mô trung tính, funding ổn.'],
+        ['phan_bien','Lưu ý: EQH phía trên chưa bị quét.'],
+        ['kiem_duyet','Số liệu khớp dữ liệu code. Chấm 8/10.'],
+        ['giam_doc','PM duyệt lệnh A.'],
+        ['risk','Rủi ro 1% vốn bàn, tổng rủi ro mở dưới 3% NAV. Cho qua.'],
+        ['compliance','Mốc SL/TP có thật, không số bịa. Cho qua.'],
+        ['thu_ky','Đã ghi biên bản, gửi Telegram cho chủ.']]},
+  sp:{name:'Phòng Spot', host:'pm_spot',
+      seats:[['pm_spot','H'],['sang_loc','L1'],['quant_spot','R1'],['phan_bien','L2'],['kiem_duyet','R2'],['risk','L3'],['co_ban','R3']],
+      script:[
+        ['pm_spot','Họp Phòng Spot. Mời Sàng lọc báo cáo.'],
+        ['sang_loc','Đã lọc rổ coin đủ thanh khoản, bỏ meme và stablecoin.'],
+        ['quant_spot','Backtest vòng 4 đã có, giờ chạy thử bằng sổ ảo.'],
+        ['co_ban','Đã rà nguồn cung và lịch mở khóa token.'],
+        ['phan_bien','So kết quả với giữ BTC, đừng chỉ nhìn lãi.'],
+        ['kiem_duyet','Số trong lời PM Spot phải có trong dữ liệu.'],
+        ['risk','Mỗi lần mua cố định 20% vốn phòng.'],
+        ['pm_spot','Chạy thử ít nhất 1 tháng rồi báo chủ.'],
+        ['thu_ky','Đã ghi biên bản họp Phòng Spot.']]},
+};
+if (D){
+  const m=(D.cuoc_hop||[])[0];
+  if (m){
+    const sc=[['giam_doc','Mở lại cuộc họp #'+m.id+' ('+m.luc+').']];
+    (m.phuong_an||[]).forEach(p=>sc.push(['ky_thuat','Lệnh '+p.hang+' '+p.huong+': Entry '+fmt(p.entry)+', SL '+fmt(p.sl)+', TP '+fmt(p.tp)+'.']));
+    if (!(m.phuong_an||[]).length) sc.push(['ky_thuat','Lần này không có phương án đạt điều kiện.']);
+    sc.push(['vi_mo','Vĩ mô đã gửi nhận định có nguồn, xem biên bản.'], ['kiem_duyet','Đã chấm 7 tiêu chí, đối chiếu số với dữ liệu code.'], ['phan_bien','Đã nêu kịch bản thua trong biên bản.']);
+    (m.ket_luan||[]).forEach(k=>sc.push(['giam_doc','PM '+k.quyet_dinh.toLowerCase()+' lệnh '+k.hang+(k.ly_do?': '+String(k.ly_do).slice(0,80):'')+'.']));
+    sc.push(['risk','Risk tính khối lượng theo vốn Futures, kiểm giới hạn quỹ.'], ['compliance','Compliance kiểm mốc SL/TP có thật.'], ['thu_ky','Đã lưu biên bản, chi phí AI '+fmt(m.chi_phi,3)+' USD.']);
+    MEETS.fu.script=sc; MEETS.fu.name='Bàn AI · họp thật #'+m.id;
+  } else { MEETS.fu.script=[['giam_doc','Chưa có cuộc họp thật nào. Có vùng A/B mới thì chủ gõ /hop.'],['thu_ky','Chưa có biên bản.']]; }
+  const r=((D.quy||{}).spot||{}).nhat_ky||[];
+  const x=r[0];
+  MEETS.sp.seats=[['pm_spot','H'],['sang_loc','L1'],['quant_spot','R1'],['risk','L2'],['compliance','R2']];
+  MEETS.sp.name='Phòng Spot · PM Spot xem vùng (không họp thật)';
+  MEETS.sp.script = x ? [
+    ['sang_loc', x.coin+' chạm vùng '+fmt(x.vung[0])+'–'+fmt(x.vung[1])+' ('+x.so_ob+' OB chồng).'],
+    ['pm_spot', (x.quyet_dinh==='MUA'?'Mua':'Chờ')+': '+String(x.ly_do||'').slice(0,90)],
+    ['risk', 'Mỗi lần mua 20% sổ, kiểm tỷ trọng tối đa.'],
+    ['compliance', x.ai?'Số trong lời PM Spot có trong dữ liệu.':'Theo luật code, không gọi AI.'],
+    ['quant_spot', 'Ghi lại để so với backtest.']]
+    : [['sang_loc','Chưa có coin nào chạm vùng OB chồng.'],['pm_spot','Vậy mình chưa mua gì, giữ tiền mặt.'],['risk','Đúng luật: không có vùng thì không mua.']];
+}
+let MK = 'fu';
+const meetBtn=$('#meetBtn');
+function startMeeting(){
+  if (S.meeting) return;
+  const Mt=MEETS[MK];
+  S.meeting={stage:'gather', t:0, line:0, M:Mt};
+  meetBtn.disabled=true; meetBtn.textContent='Đang họp…';
+  log(BY[Mt.host], 'triệu tập họp '+Mt.name+' ở Phòng họp');
+  BY[Mt.host].say('Mọi người vào họp nhé!');
+  for (const [id,seat] of Mt.seats){ const a=BY[id]; a.inMeeting=true; a.go(SPOTS.seats[seat], 'Họp '+Mt.name, 1e9); }
+  const tk=BY.thu_ky; tk.inMeeting=true; tk.go(tk.home, 'Ghi biên bản họp', 1e9);
+}
+function endMeeting(){
+  const Mt=S.meeting.M;
+  for (const [id] of Mt.seats){ const a=BY[id]; a.inMeeting=false; a.go(a.home, 'Làm việc: '+pick(a.d.work), rand(10,22)); }
+  BY.thu_ky.inMeeting=false; BY.thu_ky.timer=rand(8,16); BY.thu_ky.activity='Làm việc: Soạn biên bản họp';
+  log(BY[Mt.host], 'kết thúc họp, mọi người về phòng');
+  S.meeting=null; S.nextMeeting=rand(150,220); MK = MK==='fu' ? 'sp' : 'fu';
+  meetBtn.disabled=false; meetBtn.textContent='Xem lại họp';
+}
+function meetingTick(dt){
+  const m=S.meeting;
+  if (!m){ S.nextMeeting-=dt; if (S.nextMeeting<=0) startMeeting(); return; }
+  m.t+=dt;
+  if (m.stage==='gather'){
+    const ready=m.M.seats.every(([id,seat])=>BY[id].state==='stay' && BY[id].spot===SPOTS.seats[seat]);
+    if (ready || m.t>45){ m.stage='talk'; m.t=2.6; }
+  } else if (m.stage==='talk'){
+    if (m.t>=3.4){
+      m.t=0;
+      if (m.line<m.M.script.length){ const [id,txt]=m.M.script[m.line++]; BY[id].say(txt, 3.3); log(BY[id], '“'+txt+'”'); }
+      else endMeeting();
+    }
+  }
+}
+meetBtn.addEventListener('click', ()=>{ S.nextMeeting=0; startMeeting(); });
+
+/* ---------- log ---------- */
+const logList=$('#logList');
+function hhmm(m){ m=Math.floor(m)%(24*60); return String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0'); }
+function log(a, text){
+  const li=document.createElement('li');
+  li.innerHTML='<time>'+hhmm(S.clock)+'</time><div><b style="color:'+mix(a.color,'#000000',.05)+'">'+a.d.name+'</b> '+text+'</div>';
+  logList.prepend(li); while (logList.children.length>40) logList.lastChild.remove();
+}
+
+/* ---------- UI ---------- */
+const roster=$('#roster');
+AGENTS.forEach(a=>{
+  const b=document.createElement('button'); b.type='button'; b.className='chip'; b.setAttribute('aria-pressed','false');
+  b.innerHTML='<i style="background:'+a.color+'"></i>'+a.d.name+' <span>'+a.d.role+'</span>';
+  b.addEventListener('click', ()=>select(S.sel===a?null:a));
+  roster.appendChild(b); a.chip=b;
+});
+const card=$('#card'), followBtn=$('#followBtn');
+function select(a){
+  if (S.sel){ S.sel.chip.setAttribute('aria-pressed','false'); S.sel.el.classList.remove('sel'); }
+  S.sel=a;
+  if (!a){ card.hidden=true; ring.visible=false; S.follow=false; return; }
+  a.chip.setAttribute('aria-pressed','true'); a.el.classList.add('sel');
+  a.chip.scrollIntoView({block:'nearest', inline:'center', behavior:'smooth'});
+  $('#cAv').textContent=a.d.name[0]; $('#cAv').style.background=a.color;
+  $('#cName').textContent=a.d.name; $('#cRole').textContent=a.d.role;
+  $('#cDept').textContent=a.room.name+(a.d.status?' · '+a.d.status:''); $('#cModel').textContent=a.d.model; $('#cAct').textContent=a.activity;
+  card.hidden=false; ring.material.color.set(a.color); ring.visible=true;
+  setFollow(true);
+  const p=a.b.g.position.clone(); p.y=1;
+  const off=camera.position.clone().sub(controls.target); off.setLength(10); if (off.y<5.5) off.y=5.5;
+  flyTo(p.clone().add(off), p);
+}
+function setFollow(on){ S.follow=on; followBtn.setAttribute('aria-pressed', String(on)); followBtn.textContent=on?'Đang theo dõi':'Theo dõi'; }
+followBtn.addEventListener('click', ()=>setFollow(!S.follow));
+$('#closeBtn').addEventListener('click', ()=>select(null));
+$('#overBtn').addEventListener('click', ()=>{ select(null); flyTo(OVER.pos, OVER.tgt); });
+const speedBtn=$('#speedBtn');
+speedBtn.addEventListener('click', ()=>{ S.speed = S.speed===1?2:S.speed===2?4:1; speedBtn.textContent='Tốc độ '+S.speed+'×'; });
+const namesBtn=$('#namesBtn');
+namesBtn.addEventListener('click', ()=>{ S.names=!S.names; namesBtn.setAttribute('aria-pressed',String(S.names)); document.body.classList.toggle('hide-names', !S.names); });
+const logEl=$('#log'), logBtn=$('#logBtn');
+function setLog(on){ logEl.hidden=!on; logBtn.setAttribute('aria-pressed', String(on)); }
+logBtn.addEventListener('click', ()=>setLog(logEl.hidden));
+setLog(innerWidth>760);
+
+/* camera fly + picking */
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+let fly=null;
+function flyTo(pos,tgt){ fly={p0:camera.position.clone(), t0:controls.target.clone(), p1:pos.clone(), t1:tgt.clone(), k:reduce?1:0}; }
+controls.addEventListener('start', ()=>{ fly=null; });
+const ray=new THREE.Raycaster(), ndc=new THREE.Vector2(); let down=null;
+renderer.domElement.addEventListener('pointerdown', e=>{ down=[e.clientX,e.clientY]; });
+renderer.domElement.addEventListener('pointerup', e=>{
+  if (!down || Math.hypot(e.clientX-down[0], e.clientY-down[1])>6) return;
+  const r=renderer.domElement.getBoundingClientRect();
+  ndc.set(((e.clientX-r.left)/r.width)*2-1, -((e.clientY-r.top)/r.height)*2+1);
+  ray.setFromCamera(ndc, camera);
+  const hit=ray.intersectObjects(pickables, false)[0];
+  if (hit) select(hit.object.userData.agent);
+});
+
+/* theme */
+function isDark(){ const t=document.documentElement.getAttribute('data-theme'); if (t==='dark') return true; if (t==='light') return false; return matchMedia('(prefers-color-scheme: dark)').matches; }
+function applyTheme(){
+  const d=isDark(), bg=new THREE.Color(d?'#131a22':'#dfe6ec');
+  scene.background=bg; scene.fog=new THREE.Fog(bg, 110, 230);
+  hemi.intensity=d?0.32:0.75; hemi.groundColor.set(d?'#3a4250':'#aab4c0');
+  sun.intensity=d?0.22:0.75; sun.color.set(d?'#9fb4ff':'#fff4e6');
+  roomLights.forEach(l=>l.intensity=d?0.75:0);
+  ground.material.color.set(d?'#27312b':'#c5cfbc');
+}
+applyTheme();
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applyTheme);
+new MutationObserver(applyTheme).observe(document.documentElement, {attributes:true, attributeFilter:['data-theme']});
+
+/* ---------- việc thật: phát lại sự kiện hệ thống (D.su_kien) ---------- */
+const REAL = D ? (D.su_kien||[]).slice(0,16).reverse() : [];
+let realI=0, realT=8;
+if (D){
+  $('#srcTag').textContent='Dữ liệu thật · '+(D.cap_nhat||'');
+  $('#logNote').textContent='Dòng có ● là việc thật hệ thống đã làm (phát lại theo thứ tự). Trà, cà phê, tán gẫu là cho vui.';
+}
+function realTick(dt){
+  if (!REAL.length || S.meeting) return;
+  realT-=dt; if (realT>0) return;
+  realT=rand(16,26);
+  const ev=REAL[realI++ % REAL.length], a=BY[KEY2ID[ev.agent]||'van_hanh'];
+  if (!a || a.inMeeting) return;
+  const board=(a.d.extra||[]).map(k=>SPOTS.extra[k]).find(x=>x && !x.occ);
+  const txt=String(ev.viec).replace(/^[^\wÀ-ỹ#]+/u,'').slice(0,110);
+  const doIt=me=>{ me.say(txt, 4.5); log(me, '<span style="color:var(--accent)">●</span> '+txt+' <span style="color:var(--muted)">('+(ev.luc||'')+')</span>'); };
+  if (board && Math.random()<.5) a.go(board, 'Việc thật: '+txt, rand(7,10), doIt);
+  else if (a.spot!==a.home) a.go(a.home, 'Việc thật: '+txt, rand(10,16), doIt);
+  else { a.activity='Việc thật: '+txt; a.timer=rand(10,16); doIt(a); }
+}
+
+/* ---------- loop ---------- */
+const clockEl=$('#clock'); let lastMin=-1, actT=0;
+const tmp=new V3(); let prev=performance.now();
+function frame(now){
+  const rdt=Math.min(0.1,(now-prev)/1000); prev=now;
+  const dt=rdt*S.speed;
+  S.clock+=dt;   // 1 giây thật = 1 phút mô phỏng
+  if (S.clock>=18.5*60) S.clock=8*60;
+  const mm=Math.floor(S.clock); if (mm!==lastMin){ lastMin=mm; clockEl.firstChild.nodeValue=hhmm(mm); }
+  meetingTick(dt);
+  realTick(dt);
+  AGENTS.forEach(a=>a.update(dt));
+  if (fly){ fly.k=Math.min(1, fly.k+rdt/1.1); const e=fly.k<.5?2*fly.k*fly.k:1-Math.pow(-2*fly.k+2,2)/2;
+    if (S.follow && S.sel){ fly.t1.copy(S.sel.b.g.position).setY(1); }
+    camera.position.lerpVectors(fly.p0, fly.p1, e); controls.target.lerpVectors(fly.t0, fly.t1, e); if (fly.k>=1) fly=null; }
+  else if (S.follow && S.sel){ tmp.copy(S.sel.b.g.position).setY(1).sub(controls.target).multiplyScalar(Math.min(1,rdt*4)); controls.target.add(tmp); camera.position.add(tmp); }
+  controls.update();
+  const az=controls.getAzimuthalAngle(); decals.forEach(d=>d.rotation.y=az);
+  if (S.sel){ ring.position.copy(S.sel.b.g.position).setY(0.04); actT-=rdt; if (actT<=0){ actT=.4; $('#cAct').textContent=S.sel.activity; } }
+  renderer.render(scene, camera);
+  // tags
+  const w=innerWidth, h=innerHeight;
+  for (const a of AGENTS){
+    a.b.hd.getWorldPosition(tmp); tmp.y+=0.32; tmp.project(camera);
+    if (tmp.z>1 || tmp.z<-1){ a.el.style.display='none'; continue; }
+    a.el.style.display='';
+    a.el.style.transform='translate('+((tmp.x+1)/2*w)+'px,'+((1-tmp.y)/2*h)+'px) translate(-50%,-100%)';
+  }
+  requestAnimationFrame(frame);
+}
+log(BY.thu_ky, 'mở cửa văn phòng, mọi người vào ca');
+requestAnimationFrame(frame);
+})();
+</script>
+
+</body></html>
