@@ -1,0 +1,459 @@
+<title>Quỹ QBK 3D</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap">
+<style>
+/* Layout: sàn quỹ 3D toàn màn hình; trên là thanh kịch bản, dưới là bảng bước đang chạy và thẻ vị trí */
+:root{
+  --bg:#e4e9ee; --panel:rgba(255,255,255,.9); --fg:#15212c; --muted:#5a6876; --line:rgba(21,33,44,.13);
+  --btn:#ffffff; --accent:#0f6e7a; --on-accent:#fff;
+  --ai:#6a3fb5; --code:#1f7a4d; --nguoi:#0f6e7a; --stop:#b3361f; --ok:#1f7a4d;
+  --f-body:"Be Vietnam Pro",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#10171d; --panel:rgba(22,30,38,.9); --fg:#e4ecf1; --muted:#93a3b1; --line:rgba(228,236,241,.14);
+  --btn:#1d2731; --accent:#4fc0cc; --on-accent:#0b1418;
+  --ai:#b597ef; --code:#5fcf93; --nguoi:#4fc0cc; --stop:#f0806a; --ok:#5fcf93; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#10171d; --panel:rgba(22,30,38,.9); --fg:#e4ecf1; --muted:#93a3b1; --line:rgba(228,236,241,.14);
+  --btn:#1d2731; --accent:#4fc0cc; --on-accent:#0b1418;
+  --ai:#b597ef; --code:#5fcf93; --nguoi:#4fc0cc; --stop:#f0806a; --ok:#5fcf93; color-scheme:dark}
+[hidden]{display:none!important}
+html,body{height:100%;overflow:hidden}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);-webkit-font-smoothing:antialiased}
+#stage{position:fixed;inset:0}
+#stage canvas{display:block;touch-action:none;outline:none}
+#tags{position:fixed;inset:0;pointer-events:none;overflow:hidden}
+.tag{position:absolute;left:0;top:0;display:flex;flex-direction:column;align-items:center;gap:4px;will-change:transform}
+.nm{font-size:11px;font-weight:600;padding:2px 7px;border-radius:999px;background:var(--panel);border:1px solid var(--line);white-space:nowrap;display:flex;gap:5px;align-items:center}
+.nm b{font-family:var(--f-mono);font-size:9.5px;font-weight:600;letter-spacing:.03em}
+.nm b.ai{color:var(--ai)} .nm b.code{color:var(--code)} .nm b.nguoi{color:var(--nguoi)}
+.tag.on .nm{outline:2px solid var(--accent)}
+.tag.dim{opacity:.35}
+.hide-names .tag:not(.on) .nm{display:none}
+.bubble{max-width:200px;font-size:12px;line-height:1.35;padding:6px 9px;border-radius:10px;background:#fff;color:#15212c;box-shadow:0 4px 14px rgba(0,0,0,.2);text-align:center;text-wrap:balance;position:relative}
+.bubble::after{content:"";position:absolute;left:50%;bottom:-5px;width:10px;height:10px;background:#fff;transform:translateX(-50%) rotate(45deg)}
+.bubble.block{background:#fbe7e2;color:#7a1f10}.bubble.block::after{background:#fbe7e2}
+.bubble.pass{background:#e3f3ea;color:#124d30}.bubble.pass::after{background:#e3f3ea}
+.zone{position:absolute;left:0;top:0;font-family:var(--f-mono);font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;padding:3px 8px;border-radius:6px;color:#fff;white-space:nowrap}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);box-shadow:0 6px 24px rgba(10,20,30,.12)}
+.ui{position:fixed;left:0;right:0;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));pointer-events:none;display:flex;flex-direction:column;gap:8px}
+.ui>*{pointer-events:auto}
+header.ui{top:0;padding-top:calc(12px + env(safe-area-inset-top,0px))}
+.top{display:flex;gap:8px;align-items:stretch;flex-wrap:wrap}
+.brand{padding:8px 14px;display:flex;flex-direction:column;justify-content:center}
+.brand small{font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.brand strong{font-size:16px;font-weight:700}
+.legend{display:flex;gap:10px;align-items:center;padding:6px 12px;font-size:12px;color:var(--muted);flex-wrap:wrap}
+.legend i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:4px;vertical-align:0}
+.scen{display:flex;gap:6px;overflow-x:auto;padding:6px;scrollbar-width:none;max-width:100%}
+.scen::-webkit-scrollbar{display:none}
+button{font:inherit;color:inherit}
+.chip{height:34px;padding:0 12px;border-radius:9px;border:1px solid var(--line);background:var(--btn);font-size:13px;font-weight:500;cursor:pointer;white-space:nowrap;flex:none}
+.chip[aria-pressed="true"]{background:var(--accent);color:var(--on-accent);border-color:transparent;font-weight:600}
+.chip:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+footer.ui{bottom:0;padding-bottom:calc(12px + env(safe-area-inset-bottom,0px))}
+#flow{padding:12px 14px;width:min(430px,100%);display:flex;flex-direction:column;gap:8px}
+#flow .row{display:flex;justify-content:space-between;align-items:center;gap:8px}
+#flow h2{margin:0;font-size:14px;font-weight:700}
+#flow .ctl{display:flex;gap:6px}
+#flow .ctl .chip{height:30px;padding:0 10px;font-size:12px}
+#now{font-size:13.5px;line-height:1.45;min-height:2.9em}
+#now .who{font-weight:700}
+#steps{display:flex;gap:4px}
+#steps span{flex:1;height:4px;border-radius:2px;background:var(--line)}
+#steps span.done{background:var(--accent)}
+#steps span.cur{background:var(--accent);opacity:.55}
+#note{font-size:11px;color:var(--muted)}
+#card{padding:12px 14px;width:min(430px,100%);display:flex;flex-direction:column;gap:6px}
+#card .hd{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}
+#card h3{margin:0;font-size:16px}
+#card .sub{font-size:12.5px;color:var(--muted)}
+#card dl{margin:4px 0 0;display:grid;grid-template-columns:auto minmax(0,1fr);gap:4px 12px;font-size:12.5px}
+#card dt{color:var(--muted)} #card dd{margin:0}
+#card dd.no{color:var(--stop)}
+#card code{font-family:var(--f-mono);font-size:11.5px}
+.x{height:28px;width:28px;border-radius:8px;border:1px solid var(--line);background:var(--btn);cursor:pointer;flex:none}
+@media (max-width:640px){ .legend{display:none} .brand strong{font-size:14px} }
+</style>
+
+<div id="stage"></div>
+<div id="tags"></div>
+
+<header class="ui">
+  <div class="top">
+    <div class="brand panel"><small id="srcTag">Mô hình 3D · đường đi lệnh</small><strong>Quỹ QBK</strong></div>
+    <div class="legend panel">
+      <span><i style="background:var(--ai)"></i>AI (tốn phí, chạy khi cần)</span>
+      <span><i style="background:var(--code)"></i>Code (miễn phí)</span>
+      <span><i style="background:var(--nguoi)"></i>Chủ</span>
+    </div>
+  </div>
+  <nav class="scen panel" id="scen" aria-label="Chọn quy trình"></nav>
+</header>
+
+<footer class="ui">
+  <section id="card" class="panel" hidden aria-live="polite">
+    <div class="hd"><div><h3 id="cName"></h3><div class="sub" id="cSub"></div></div><button class="x" id="cClose" type="button" aria-label="Đóng">✕</button></div>
+    <dl>
+      <dt>Việc</dt><dd id="cDo"></dd>
+      <dt>Không được</dt><dd class="no" id="cNo"></dd>
+      <dt>Mã nguồn</dt><dd><code id="cSrc"></code></dd>
+    </dl>
+  </section>
+  <section id="flow" class="panel" aria-live="polite">
+    <div class="row">
+      <h2 id="fTitle">Đường đi lệnh Bàn AI</h2>
+      <div class="ctl">
+        <button class="chip" id="pBtn" type="button">Tạm dừng</button>
+        <button class="chip" id="nBtn" type="button" aria-pressed="true">Tên</button>
+        <button class="chip" id="oBtn" type="button">Toàn cảnh</button>
+      </div>
+    </div>
+    <div id="steps"></div>
+    <div id="now"></div>
+    <div id="note">Luồng theo docs/QUY_QBK.md. Kéo để xoay, chụm để phóng to, chạm một người để xem việc của họ.</div>
+  </section>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script>
+(function(){
+const $=s=>document.querySelector(s), V3=THREE.Vector3;
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ---------- dữ liệu: các vị trí trong quỹ (docs/QUY_QBK.md, config.yaml) ---------- */
+const ZONES={
+  top:{name:'Chủ & CIO', color:'#0f6e7a'},
+  fo:{name:'Front office · tạo lợi nhuận', color:'#2f6fd6'},
+  mo:{name:'Middle office · kiểm soát', color:'#b3361f'},
+  bo:{name:'Back office · vận hành', color:'#b8901a'},
+  out:{name:'Bên ngoài', color:'#5b6b78'},
+};
+const P=[ // id, tên, khối, loại, chạy bằng, việc, không được, mã nguồn, ô (cột,hàng)
+ ['chu','Chủ','top','nguoi','Người · Telegram / app','Rót/rút vốn, gõ /hop, duyệt lệnh và chia vốn, quyết cuối','—','/hop · /phanbo · /rotvon',[-1.2,0]],
+ ['cio','CIO','top','ai','Claude Opus 5.5','Đề xuất chia vốn Spot / Futures (đang 80/20), họp Hội đồng ngày 1 hằng tháng','Duyệt từng lệnh, tự chia vốn khi chủ chưa duyệt','qbk/cio.py',[1.2,0]],
+ ['pmai','PM Bàn AI','fo','ai','Claude Opus 5.5','Quyết DUYỆT / CHỜ / BỎ lệnh A/B sau cuộc họp','Tự tính khối lượng, tự xin thêm vốn','qbk/agents/meeting.py',[0,0]],
+ ['pme','PM Bàn E','fo','code','Code · bộ luật','Luật OB 1H ra tín hiệu, không dùng AI','Đi tắt qua Risk','qbk/runner.py',[1,0]],
+ ['pms','PM Spot','fo','ai','Claude Sonnet 5.5','Giá chạm vùng OB chồng thì xem 1 lần, quyết MUA / CHỜ (80% vốn quỹ)','Cắt lỗ, mua quá 20% sổ mỗi lần','qbk/spot.py',[2,0]],
+ ['kt','Analyst Kỹ thuật','fo','ai','Claude Opus 5.5 · medium','Đọc SMC (OB, FVG, Fib), đề xuất vùng vào lệnh','Đưa số không có trong dữ liệu code','prompts/ky_thuat.md',[0,1]],
+ ['vm','Analyst Vĩ mô','fo','ai','Gemini Flash (dự phòng Sonnet)','Thiên hướng thị trường, lịch kinh tế, tin có nguồn','Đưa tin không nguồn','prompts/vi_mo.md',[1,1]],
+ ['liq','Analyst Thanh khoản','fo','code','Code · API sàn miễn phí','Sổ lệnh nhiều sàn, độ sâu, tường lệnh, funding, OI','Biến tường lệnh thành luật vào lệnh','qbk/liquidity/',[2,1]],
+ ['quant','Quant','fo','code','Code','Backtest, so kết quả thật với backtest, báo bàn chạy lệch','Mở bàn mới khi chưa qua chạy thử','qbk/cio.py:quant_check',[0,2]],
+ ['exe','Execution','fo','code','Code','Khớp giả lập, trừ phí sàn (maker / taker) và funding','Đổi giá vào lệnh','qbk/tracker.py',[1,2]],
+ ['risk','Risk','mo','code','Code','Khối lượng, đòn bẩy ≤ 5×, rủi ro mở ≤ 1% NAV, tỷ trọng Spot; có quyền CHẶN mọi lệnh','Quyết mua/bán','qbk/fund.py:gate',[0,0]],
+ ['kd','Kiểm duyệt','mo','ai','Claude Sonnet 5.5','Chấm 7 tiêu chí cho lệnh A/B','Chấm lệnh của chính mình','prompts/kiem_duyet.md',[1,0]],
+ ['pb','Phản biện','mo','ai','Claude Sonnet 5.5','Dựng kịch bản thua, chất vấn CIO. Chỉ góp ý','Chặn lệnh','prompts/phan_bien.md',[2,0]],
+ ['comp','Compliance','mo','code','Code','Chống bịa: mốc SL/TP có thật, đúng luật đã bật, trần chi phí','Bỏ qua lệnh của bàn tự động','qbk/fund.py:compliance',[0,1]],
+ ['perf','Performance','mo','code','Code','Sharpe, sụt giảm, winrate từng bàn, chấm điểm agent','Bị chấm bởi chính người được chấm','qbk/scoring.py',[1,1]],
+ ['ops','Operations','bo','code','Code','Theo dõi khớp, TP, SL của lệnh ảo','Sửa lệnh đã ghi','qbk/tracker.py',[0,0]],
+ ['acct','Kế toán quỹ','bo','code','Code','NAV hằng ngày, đơn vị quỹ, rót/rút','Tự đối chiếu NAV của mình','qbk/fund.py · accounting.py',[1,0]],
+ ['it','IT / Data','bo','code','Code · GitHub Actions','Lấy giá Binance → OKX, chạy mỗi giờ phút 7','—','qbk/data/',[2,0]],
+ ['ir','Quan hệ NĐT','bo','code','Code','Bản tin sáng, báo cáo tháng, app, Telegram','—','qbk/brief.py · notifier.py',[0,1]],
+ ['tk','Thư ký','bo','code','Code','Soạn biên bản họp từ dữ liệu cuộc họp, gửi kèm chart','Thêm ý kiến riêng vào biên bản','qbk/agents/meeting.py',[1,1]],
+ ['tv','Thư viện','bo','ai','Claude Sonnet 5.5','Chủ dạy qua Telegram (/hoc): tóm tắt thành bài học cho agent','Gắn bài học chưa có nguồn','qbk/knowledge.py',[2,1]],
+ ['audit','Kiểm toán','out','code','Code · script độc lập','Tự tính lại lời/lỗ và NAV mỗi tháng từ dữ liệu gốc','Dùng số của Kế toán','qbk/audit.py',[0,0]],
+];
+const BY={};
+
+/* ---------- quy trình ---------- */
+const SC={
+ ai:{name:'Lệnh Bàn AI', title:'Đường đi lệnh Bàn AI (A/B)', steps:[
+  ['it','Code thấy vùng A/B mới: OB 1H nằm trong OB 4H. Báo chủ, chờ họp.'],
+  ['chu','Chủ gõ /hop để mở cuộc họp.'],
+  [['vm','kt'],'Vĩ mô ‖ Kỹ thuật đưa ý tưởng, mọi số dẫn từ dữ liệu code.'],
+  [['kd','pb'],'Kiểm duyệt chấm 7 tiêu chí ‖ Phản biện dựng kịch bản thua.'],
+  ['pmai','PM Bàn AI quyết DUYỆT / CHỜ / BỎ. Không tự tính khối lượng.'],
+  ['risk','Risk tính khối lượng, kiểm tổng rủi ro mở ≤ 3% NAV → CHO QUA','pass'],
+  ['comp','Compliance: mốc SL/TP có thật, không số bịa → CHO QUA','pass'],
+  ['exe','Execution khớp giả lập, tính phí và trượt giá.'],
+  ['ops','Operations ghi lệnh ảo, theo dõi TP/SL.'],
+  ['tk','Thư ký soạn biên bản, gửi kèm chart.'],
+  ['chu','Chủ nhận Telegram.'] ]},
+ er:{name:'Lệnh Bàn E', title:'Bàn E tự động (không AI)', steps:[
+  ['pme','Luật code ra tín hiệu: OB 1H đạt điều kiện, lệnh chờ ở mép OB.'],
+  ['risk','Risk dùng chung luật với Bàn AI → CHO QUA','pass'],
+  ['comp','Compliance: đúng luật đã bật, không vượt vốn bàn → CHO QUA','pass'],
+  ['exe','Execution khớp giả lập.'],
+  ['ops','Operations dời SL theo giá, theo dõi khớp/đóng.'],
+  ['ir','Báo Telegram khi khớp hoặc đóng.'] ]},
+ spot:{name:'Lệnh Spot', title:'Phòng Spot (80% vốn quỹ)', steps:[
+  ['it','Code tính vùng OB ngày + tuần chồng nhau, canh giá mỗi giờ (0$).'],
+  ['liq','Analyst Thanh khoản đo độ sâu sổ lệnh spot.'],
+  ['pms','Giá chạm vùng: PM Spot (AI) xem 1 lần, quyết MUA / CHỜ. Altcoin chỉ khi BTC vừa chạm vùng.'],
+  ['risk','Risk: mỗi lần 20% sổ, một coin ≤ 40% (altcoin ≤ 20%), sổ sụt 30% thì ngừng mua → CHO QUA','pass'],
+  ['comp','Compliance: số PM Spot nêu phải có trong dữ liệu → CHO QUA','pass'],
+  ['exe','Execution khớp giả lập, phí 0,1%.'],
+  ['acct','Kế toán cộng sổ Spot vào NAV.'],
+  ['chu','Chủ nhận Telegram.'] ]},
+ block:{name:'Risk chặn', title:'Ví dụ: Risk chặn lệnh của PM', steps:[
+  ['pmai','PM Bàn AI DUYỆT lệnh A SHORT.'],
+  ['risk','Tổng rủi ro mở sẽ thành 1,2% > 1% NAV → CHẶN, ghi lý do.','block'],
+  ['ir','Báo chủ: PM duyệt nhưng Risk chặn vì vượt giới hạn quỹ.'],
+  ['perf','Lệnh vẫn được theo dõi ngầm để chấm điểm PM.'] ], note:'Số 1,2% là ví dụ minh họa.'},
+ hour:{name:'Mỗi giờ', title:'Mỗi giờ, phút 7 (0$, chỉ code)', steps:[
+  ['it','IT/Data lấy giá mới nhất.'],
+  ['liq','Analyst Thanh khoản quét sổ lệnh nhiều sàn, tối đa 90 giây.'],
+  ['pme','Bàn E quét tín hiệu.'],
+  ['pms','Phòng Spot canh vùng OB chồng.'],
+  ['ops','Operations kiểm tra khớp, TP, SL.'],
+  ['risk','Risk kiểm giới hạn toàn quỹ.'],
+  ['chu','Có vùng A/B mới thì báo chủ.'] ]},
+ day:{name:'Mỗi sáng', title:'Mỗi ngày 07:07 (0$, chỉ code)', steps:[
+  ['acct','Kế toán quỹ chốt NAV, ghi đường NAV và sụt giảm.'],
+  ['risk','Risk gộp báo cáo rủi ro.'],
+  ['perf','Performance cập nhật số liệu từng bàn.'],
+  ['ir','Quan hệ NĐT soạn bản tin sáng.'],
+  ['chu','Chủ đọc bản tin: /quy, /lenh.'] ]},
+ month:{name:'Hội đồng tháng', title:'Hội đồng ngày 1 hằng tháng', steps:[
+  ['acct','Kế toán chốt số cả tháng.'],
+  ['audit','Kiểm toán tự tính lại NAV từ dữ liệu gốc.'],
+  ['perf','Performance báo cáo từng bàn.'],
+  ['quant','Quant báo bàn nào chạy lệch backtest.'],
+  ['cio','CIO đề xuất chia vốn: mỗi bàn 10–40%, giữ ≥ 10% tiền mặt.'],
+  ['pb','Phản biện chất vấn đề xuất của CIO.'],
+  ['chu','Chỉ có hiệu lực khi chủ gõ /phanbo duyet.'] ]},
+ learn:{name:'Học bài', title:'Chủ dạy, agent học', steps:[
+  ['chu','Chủ gửi tài liệu hoặc video.'],
+  ['tv','Thư viện tóm tắt thành bài học có quy tắc.'],
+  [['kt','vm','kd','pb','pmai'],'Bài học được gắn cho các agent liên quan, dùng ở cuộc họp sau.'] ]},
+};
+
+/* ---------- renderer ---------- */
+const renderer=new THREE.WebGLRenderer({antialias:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio||1,2));
+renderer.shadowMap.enabled=true; renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+$('#stage').appendChild(renderer.domElement);
+const scene=new THREE.Scene();
+const camera=new THREE.PerspectiveCamera(42,1,0.1,300);
+const controls=new THREE.OrbitControls(camera,renderer.domElement);
+controls.enableDamping=true; controls.dampingFactor=.08; controls.maxPolarAngle=1.3; controls.minDistance=6; controls.maxDistance=90;
+scene.add(new THREE.HemisphereLight(0xffffff,0xa9b3be,.8));
+const sun=new THREE.DirectionalLight(0xfff3e2,.7); sun.position.set(14,30,18); sun.castShadow=true;
+sun.shadow.mapSize.set(2048,2048); Object.assign(sun.shadow.camera,{left:-30,right:30,top:30,bottom:-30,near:1,far:90}); sun.shadow.bias=-.0004;
+scene.add(sun);
+const MC={}; const M=(c,o)=>{const k=c+JSON.stringify(o||{}); return MC[k]||(MC[k]=new THREE.MeshStandardMaterial(Object.assign({color:c,roughness:.8},o||{})));};
+function add(p,g,m,x,y,z,cast){const o=new THREE.Mesh(g,m); o.position.set(x||0,y||0,z||0); o.castShadow=cast!==false; o.receiveShadow=true; p.add(o); return o;}
+const B=(w,h,d)=>new THREE.BoxGeometry(w,h,d), C=(a,b,h,s)=>new THREE.CylinderGeometry(a,b,h,s||14), S=(r)=>new THREE.SphereGeometry(r,18,14);
+const TYPE_COL={ai:'#7b4fd0',code:'#2a8a5a',nguoi:'#127c88'};
+
+/* ---------- bố cục: dọc trên điện thoại, ngang trên màn rộng ---------- */
+const portrait=innerWidth/innerHeight<0.9;
+const ORG = portrait
+  ? {top:[0,-17], fo:[0,-8], mo:[0,2.5], bo:[0,12], out:[0,19.5]}
+  : {top:[0,-10], fo:[-12,1], mo:[0,1], bo:[12,1], out:[22,-8]};
+const CELL={x:3.1,z:3.2};
+const ZSIZE={top:[8,4.6],fo:[10.6,10],mo:[10.6,7],bo:[10.6,7],out:[4.6,4.6]};
+const zoneEls=[];
+for(const k in ZONES){
+  const z=ZONES[k],[cx,cz]=ORG[k],[w,d]=ZSIZE[k];
+  add(scene,B(w,0.3,d),M(new THREE.Color(z.color).lerp(new THREE.Color('#eef1f4'),.62).getStyle()),cx,k==='top'?0.6:0,cz,false);
+  add(scene,B(w+0.1,0.06,d+0.1),M(z.color),cx,k==='top'?0.43:-0.16,cz,false);
+  if(k==='top'){ add(scene,B(w,0.45,d),M('#d5dbe1'),cx,0.22,cz,false); }
+  const el=document.createElement('div'); el.className='zone'; el.textContent=z.name; el.style.background=z.color; $('#tags').appendChild(el);
+  zoneEls.push({el,pos:new V3(cx,k==='top'?0.8:0.2,cz+d/2+0.1)});
+}
+add(scene,new THREE.PlaneGeometry(400,400),M('#aebaa9'),0,-0.2,0,false).rotation.x=-Math.PI/2;
+// két lưu ký cạnh Kiểm toán
+{const [cx,cz]=ORG.out; const g=new THREE.Group(); g.position.set(cx+1.3,0.15,cz-0.9); scene.add(g);
+ add(g,B(1,1.1,0.8),M('#3c4650',{metalness:.4,roughness:.4}),0,0.55,0); add(g,C(.13,.13,.05,16),M('#c9a227',{metalness:.6}),0,.62,.42).rotation.x=Math.PI/2;}
+
+function cellPos(id,zone,cell){
+  const [cx,cz]=ORG[zone];
+  if(zone==='top') return new V3(cx+cell[0]*1.6,0.75,cz);
+  if(zone==='out') return new V3(cx-0.8,0.15,cz+0.4);
+  const rows=zone==='fo'?3:2;
+  return new V3(cx+(cell[0]-1)*CELL.x, 0.15, cz+(cell[1]-(rows-1)/2)*CELL.z);
+}
+
+/* ---------- người + bàn ---------- */
+const pickables=[];
+function person(d){
+  const [id,name,zone,type,model,doing,no,src,cell]=d;
+  const pos=cellPos(id,zone,cell);
+  const g=new THREE.Group(); g.position.copy(pos); scene.add(g);
+  const col=TYPE_COL[type];
+  // bàn + màn hình
+  add(g,B(1.5,0.05,0.75),M('#d8ccb8'),0,0.74,-0.55);
+  for(const sx of[-.68,.68]) add(g,B(.05,.72,.05),M('#5a626c'),sx,.36,-0.55);
+  add(g,B(.62,.38,.04),M('#1d232b'),0,1.12,-0.8);
+  const scr=add(g,new THREE.PlaneGeometry(.56,.32),new THREE.MeshBasicMaterial({color:col}),0,1.12,-0.775,false);
+  scr.material=scr.material.clone(); scr.material.color.set(col).lerp(new THREE.Color('#ffffff'),.35);
+  // ghế
+  add(g,B(.5,.07,.48),M('#3a424c'),0,.46,0.15); add(g,B(.5,.5,.07),M('#3a424c'),0,.74,.42);
+  // người que khối
+  const body=new THREE.Group(); body.position.set(0,0,0.12); g.add(body);
+  add(body,C(.17,.2,.55,14),M(col),0,.82,0);
+  const hd=add(body,S(.15),M('#f0c9a4'),0,1.27,0);
+  add(body,new THREE.SphereGeometry(.16,16,10,0,Math.PI*2,0,Math.PI*.55),M('#22180f'),0,1.3,.01);
+  const aL=new THREE.Group(),aR=new THREE.Group(); aL.position.set(-.22,1.02,0); aR.position.set(.22,1.02,0); body.add(aL,aR);
+  for(const a of[aL,aR]) add(a,C(.05,.045,.42,8),M(col),0,-.2,0);
+  aL.rotation.x=aR.rotation.x=-1.1;
+  // vòng sáng dưới chân khi đang làm
+  const ring=new THREE.Mesh(new THREE.RingGeometry(.75,.92,40),new THREE.MeshBasicMaterial({color:col,transparent:true,opacity:0,depthWrite:false}));
+  ring.rotation.x=-Math.PI/2; ring.position.y=.03; g.add(ring);
+  const o={id,name,zone,type,model,doing,no,src,g,body,hd,aL,aR,ring,scr,pos,t:Math.random()*9,act:0};
+  g.traverse(m=>{if(m.isMesh){m.userData.p=o; pickables.push(m);}});
+  const el=document.createElement('div'); el.className='tag';
+  el.innerHTML='<div class="bubble" hidden></div><div class="nm">'+name+' <b class="'+type+'">'+(type==='ai'?'AI':type==='code'?'CODE':'CHỦ')+'</b></div>';
+  $('#tags').appendChild(el); o.el=el; o.bub=el.querySelector('.bubble');
+  BY[id]=o; return o;
+}
+const PEOPLE=P.map(person);
+
+/* ---------- token chạy theo quy trình ---------- */
+const tokGeo=new THREE.SphereGeometry(.22,20,14);
+const tokens=[];
+function spawnToken(from,to,color,dur){
+  const m=new THREE.Mesh(tokGeo,new THREE.MeshBasicMaterial({color}));
+  scene.add(m);
+  const trail=new THREE.Mesh(new THREE.SphereGeometry(.4,16,12),new THREE.MeshBasicMaterial({color,transparent:true,opacity:.25,depthWrite:false})); m.add(trail);
+  const a=from.clone().add(new V3(0,1.6,0)), b=to.clone().add(new V3(0,1.6,0));
+  const mid=a.clone().lerp(b,.5); mid.y+=Math.min(6,1.2+a.distanceTo(b)*.35);
+  tokens.push({m,a,b,mid,t:0,dur});
+}
+function tickTokens(dt){
+  for(let i=tokens.length-1;i>=0;i--){
+    const k=tokens[i]; k.t+=dt/k.dur; const t=Math.min(1,k.t), u=1-t;
+    k.m.position.set(u*u*k.a.x+2*u*t*k.mid.x+t*t*k.b.x, u*u*k.a.y+2*u*t*k.mid.y+t*t*k.b.y, u*u*k.a.z+2*u*t*k.mid.z+t*t*k.b.z);
+    if(k.t>=1.15){ scene.remove(k.m); tokens.splice(i,1); }
+  }
+}
+
+/* ---------- chạy kịch bản ---------- */
+const R={key:'ai',i:-1,timer:0,phase:'move',paused:false,prev:[]};
+const MOVE=1.1, HOLD=2.4;
+function ids(x){return Array.isArray(x)?x:[x];}
+function setScenario(k){
+  R.key=k; R.i=-1; R.timer=0; R.prev=[]; R.phase='hold';
+  PEOPLE.forEach(p=>{p.act=0; p.bub.hidden=true;});
+  const sc=SC[k];
+  $('#fTitle').textContent=sc.title;
+  $('#steps').innerHTML=sc.steps.map(()=>'<span></span>').join('');
+  document.querySelectorAll('#scen .chip').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.k===k)));
+  const inv=new Set(sc.steps.flatMap(s=>ids(s[0])));
+  PEOPLE.forEach(p=>p.el.classList.toggle('dim',!inv.has(p.id)));
+  $('#note').textContent=(sc.note?sc.note+' ':'')+'Luồng theo docs/QUY_QBK.md. Chạm một người để xem việc của họ.';
+  nextStep();
+}
+function nextStep(){
+  const sc=SC[R.key];
+  R.i++;
+  if(R.i>=sc.steps.length){ R.i=-1; R.prev=[]; R.phase='rest'; R.timer=1.8; PEOPLE.forEach(p=>{p.act=0;p.bub.hidden=true;}); return; }
+  const [who,text,gate]=sc.steps[R.i], to=ids(who);
+  const color=gate==='block'?css('--stop')||'#b3361f':gate==='pass'?'#2fae6c':'#f0b429';
+  PEOPLE.forEach(p=>{ if(!to.includes(p.id)){p.act=Math.max(0,p.act-1); p.bub.hidden=true;} });
+  if(R.prev.length){ for(const t of to) spawnToken(BY[R.prev[0]].pos,BY[t].pos,color,MOVE); R.phase='move'; R.timer=MOVE; }
+  else { R.phase='hold'; R.timer=HOLD; }
+  R.pending={to,text,gate}; R.prev=to;
+  if(R.phase!=='move') arrive(); // bước đầu hiện ngay
+  [...$('#steps').children].forEach((s,j)=>{s.className=j<R.i?'done':j===R.i?'cur':'';});
+  const names=to.map(t=>BY[t].name).join(' ‖ ');
+  $('#now').innerHTML='<span class="who">'+(R.i+1)+'. '+names+'</span><br>'+text;
+}
+function arrive(){
+  const {to,text,gate}=R.pending;
+  to.forEach((t,j)=>{ const p=BY[t]; p.act=2;
+    if(j===0||to.length<=2){ p.bub.textContent=to.length>2?text:short(text); p.bub.className='bubble'+(gate?' '+gate:''); p.bub.hidden=false; }
+    if(gate==='block') flash(p,'#e04b2d'); });
+  R.phase='hold'; R.timer=HOLD+(to.length>1?.6:0);
+}
+function short(t){ return t.length>70?t.slice(0,68).replace(/\s\S*$/,'')+'…':t; }
+function flash(p,c){ p.scr.material.color.set(c); setTimeout(()=>p.scr.material.color.set(TYPE_COL[p.type]).lerp(new THREE.Color('#ffffff'),.35),1800); }
+function tickRun(dt){
+  if(R.paused) return;
+  R.timer-=dt;
+  if(R.timer>0) return;
+  if(R.phase==='move') arrive();
+  else nextStep();
+}
+
+/* ---------- UI ---------- */
+const scen=$('#scen');
+const D=(()=>{ try { return (parent!==window && parent.QBK_DATA) || null; } catch(e){ return null; } })();
+if (D){
+  const c=((D.quy||{}).kiem_soat||[]).find(x=>x.chan);
+  if (c) SC.block={name:'Risk chặn (thật)', title:'Lần chặn gần nhất · '+c.luc, steps:[
+    [c.ban==='AI'?'pmai':'pme', (c.ban==='AI'?'PM Bàn AI':'Bàn '+c.ban)+' gửi lệnh '+(c.huong||'')+'.'],
+    [c.bo_phan==='Risk'?'risk':'comp', String(c.ly_do[0]||'vượt giới hạn').slice(0,110)+' → CHẶN','block'],
+    ['ir','Báo chủ qua Telegram.']]};
+  else SC.block.note='Chưa có lần chặn thật nào; đây là ví dụ minh họa.';
+  const t=document.getElementById('srcTag'); if (t) t.textContent='Dữ liệu thật · '+(D.cap_nhat||'');
+}
+for(const k in SC){ const b=document.createElement('button'); b.type='button'; b.className='chip'; b.dataset.k=k; b.textContent=SC[k].name; b.addEventListener('click',()=>{R.paused=false; $('#pBtn').textContent='Tạm dừng'; setScenario(k);}); scen.appendChild(b); }
+$('#pBtn').addEventListener('click',e=>{R.paused=!R.paused; e.currentTarget.textContent=R.paused?'Chạy tiếp':'Tạm dừng';});
+$('#nBtn').addEventListener('click',e=>{const on=e.currentTarget.getAttribute('aria-pressed')!=='true'; e.currentTarget.setAttribute('aria-pressed',String(on)); document.body.classList.toggle('hide-names',!on);});
+$('#oBtn').addEventListener('click',()=>flyTo(OVER.p,OVER.t));
+let sel=null;
+function select(p){
+  if(sel) sel.el.classList.remove('on');
+  sel=p; const card=$('#card');
+  if(!p){card.hidden=true; return;}
+  p.el.classList.add('on');
+  $('#cName').textContent=p.name;
+  $('#cSub').textContent=ZONES[p.zone].name+' · '+p.model;
+  $('#cDo').textContent=p.doing; $('#cNo').textContent=p.no; $('#cSrc').textContent=p.src;
+  card.hidden=false;
+  const tgt=p.pos.clone().setY(1); const off=camera.position.clone().sub(controls.target).setLength(portrait?16:13); if(off.y<6)off.y=6;
+  flyTo(tgt.clone().add(off),tgt);
+}
+$('#cClose').addEventListener('click',()=>select(null));
+const ray=new THREE.Raycaster(), mv=new THREE.Vector2(); let down=null;
+renderer.domElement.addEventListener('pointerdown',e=>{down=[e.clientX,e.clientY];});
+renderer.domElement.addEventListener('pointerup',e=>{
+  if(!down||Math.hypot(e.clientX-down[0],e.clientY-down[1])>6) return;
+  mv.set(e.clientX/innerWidth*2-1,-(e.clientY/innerHeight)*2+1); ray.setFromCamera(mv,camera);
+  const h=ray.intersectObjects(pickables,false)[0]; select(h?h.object.userData.p:null);
+});
+
+/* ---------- camera ---------- */
+const OVER={p:new V3(),t:new V3()};
+function overview(){
+  const a=innerWidth/innerHeight;
+  if(portrait){ OVER.p.set(0,58,30); OVER.t.set(0,0,1); }
+  else if(a<1.3){ OVER.p.set(4,36,30); OVER.t.set(4,0,-1); }
+  else { OVER.p.set(2,27,25); OVER.t.set(2,0,-1); }
+}
+let fly=null;
+function flyTo(p,t){ fly={p0:camera.position.clone(),t0:controls.target.clone(),p1:p.clone(),t1:t.clone(),k:reduce?1:0}; }
+function resize(){ renderer.setSize(innerWidth,innerHeight); camera.aspect=innerWidth/innerHeight; camera.updateProjectionMatrix(); overview(); }
+resize(); camera.position.copy(OVER.p); controls.target.copy(OVER.t);
+addEventListener('resize',resize);
+
+/* ---------- vòng lặp ---------- */
+const tmp=new V3(); let last=performance.now();
+function project(v,el,dy){
+  tmp.copy(v); tmp.project(camera);
+  if(tmp.z>1){el.style.visibility='hidden';return;}
+  el.style.visibility='';
+  const x=(tmp.x*.5+.5)*innerWidth, y=(-tmp.y*.5+.5)*innerHeight;
+  el.style.transform='translate(-50%,-100%) translate('+x.toFixed(1)+'px,'+(y-(dy||0)).toFixed(1)+'px)';
+}
+function loop(now){
+  const dt=Math.min(.05,(now-last)/1000); last=now;
+  if(fly){ fly.k=Math.min(1,fly.k+dt*1.6); const e=fly.k<.5?2*fly.k*fly.k:1-Math.pow(-2*fly.k+2,2)/2;
+    camera.position.lerpVectors(fly.p0,fly.p1,e); controls.target.lerpVectors(fly.t0,fly.t1,e); if(fly.k>=1) fly=null; }
+  controls.update();
+  tickRun(dt); tickTokens(dt);
+  for(const p of PEOPLE){
+    p.t+=dt; const on=p.act>=2;
+    const tgtOp=on?.85:0; p.ring.material.opacity+=(tgtOp-p.ring.material.opacity)*Math.min(1,dt*6);
+    if(on){ const s=1+Math.sin(p.t*5)*.06; p.ring.scale.set(s,s,s); }
+    p.body.position.y=on&&!reduce?Math.abs(Math.sin(p.t*4))*.08:0;
+    p.aL.rotation.x=-1.1+(on?Math.sin(p.t*9)*.25:Math.sin(p.t*14)*.04);
+    p.aR.rotation.x=-1.1+(on?Math.sin(p.t*9+1.5)*.25:Math.sin(p.t*14+1.7)*.04);
+    p.hd.rotation.y=Math.sin(p.t*.7)*.25;
+    p.el.classList.toggle('on',on||p===sel);
+    project(p.pos.clone().setY(p.pos.y+1.75),p.el);
+  }
+  for(const z of zoneEls) project(z.pos,z.el,-22);
+  renderer.render(scene,camera);
+  requestAnimationFrame(loop);
+}
+setScenario('ai');
+requestAnimationFrame(loop);
+})();
+</script>
